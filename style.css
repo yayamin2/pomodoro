@@ -1,0 +1,40 @@
+:root {
+  --bg: #12151d; /* fundo da página */
+  --text: #f4f5f8; /* cor do texto */
+  --muted: #8c93a6; /* cinza para textos secundários */
+  --taxi: #fbc22e; /* amarelo de destaque */
+  --sans: "Archivo", system-ui, sans-serif; /* fonte */
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* BODY: fundo, cor e fonte da página toda */
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  min-height: 100vh; /* ocupa a altura inteira da tela */
+}
+
+/* HEADER: limita a largura e centraliza o conteúdo */
+header {
+  max-width: 1200px;
+  margin: 0 auto; /*  centraliza */
+  padding: 26px 24px; /* espaço interno */
+}
+
+h1 {
+  font-size: 40px;
+  font-weight: 800;
+  letter-spacing: -1px; /* aproxima um pouco as letras */
+}
+
+header p {
+  color: var(--muted);
+  font-size: 18px;
+  margin-top: 8px;
+}
