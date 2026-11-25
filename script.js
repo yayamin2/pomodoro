@@ -1,4 +1,8 @@
-const DURACOES = { foco: 5, curta: 3, longa: 4 };
+const DURACOES = {
+  foco: 25 * 60,
+  curta: 5 * 60,
+  longa: 15 * 60,
+};
 const FOCOS_ATE_LONGA = 4; // depois de 4 focos, vem a pausa longa
 
 let modo = "foco";
@@ -16,6 +20,7 @@ const modoEl = document.querySelector("#modo");
 const proximaEl = document.querySelector("#proxima");
 const timerEl = document.querySelector(".timer");
 const bolinhas = document.querySelectorAll("#dots span");
+const taxiEl = document.querySelector("#taxi");
 
 function formatar(segundos) {
   const min = Math.floor(segundos / 60); // Math.floor arredonda para baixo
@@ -38,6 +43,11 @@ function desenhar() {
   const total = DURACOES[modo]; // duração total do bloco atual
   tempoEl.textContent = formatar(restante);
   barraEl.style.width = (1 - restante / total) * 100 + "%";
+  // TÁXI: anda pela rua conforme o progresso (0 = começo, 1 = fim)
+  const andou = 1 - restante / total;
+  // calc() mistura % e px: a rua inteira menos o espaço do táxi e da parada (98px)
+  taxiEl.style.left = "calc((100% - 98px) * " + andou + ")";
+  taxiEl.classList.toggle("rolando", rodando); // balança só enquanto o timer roda
 
   if (modo === "foco") modoEl.textContent = "Foco";
   else if (modo === "curta") modoEl.textContent = "Pausa curta";
@@ -227,3 +237,52 @@ nomeEl.addEventListener("keydown", function (e) {
 
 // Primeira vez: mostra a mensagem de "nenhuma tarefa"
 desenharTarefas();
+// ===================== SKYLINE =====================
+const cidadeEl = document.querySelector("#sky");
+const empireEl = document.querySelector("#empire");
+
+function desenharCidade() {
+  let x = 0; // posição horizontal atual, em % da largura
+  let semente = 7; // número inicial do "sorteio". Fixo = o desenho é sempre o mesmo
+  let empireColocado = false;
+
+  // Gerador de números "aleatórios" entre 0 e 1 (aqui sempre na mesma sequência)
+  function sorteio() {
+    semente = (semente * 9301 + 49297) % 233280;
+    return semente / 233280;
+  }
+
+  // while repete enquanto a condição for verdadeira, como no Java
+  while (x < 86) {
+    // ao chegar perto de 34%, reserva um espaço para o Empire State
+    if (!empireColocado && x >= 34) {
+      empireEl.style.left = x + "%";
+      x += 4.9;
+      empireColocado = true;
+      continue; // pula para a próxima volta do while
+    }
+
+    const largura = 3 + sorteio() * 5; // largura entre 3% e 8%
+    const altura = 18 + sorteio() * 48; // altura entre 18px e 66px
+
+    const predio = document.createElement("div");
+    predio.className = "predio";
+    predio.style.left = x + "%";
+    predio.style.width = largura + "%";
+    predio.style.height = altura + "px";
+    cidadeEl.append(predio);
+
+    // em alguns prédios (cerca de 45%), acende uma janelinha amarela
+    if (sorteio() > 0.55) {
+      const janela = document.createElement("div");
+      janela.className = "janela";
+      janela.style.left = x + largura * sorteio() * 0.7 + "%";
+      janela.style.bottom = altura * (0.4 + sorteio() * 0.5) + "px";
+      cidadeEl.append(janela);
+    }
+
+    x += largura + 0.2; // anda para o lado e deixa um espacinho entre os prédios
+  }
+}
+
+desenharCidade();

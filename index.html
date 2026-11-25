@@ -19,7 +19,42 @@
     <p>Uma coisa de cada vez. Escolha a linha, aperte o play e vá até a próxima parada.</p>
   </header>
 
-  <!-- MAIN: o conteúdo principal da página -->
+  <div class="page">
+    <div class="skyline" id="sky" aria-hidden="true">
+      <!-- SVG: desenho feito com código. path = formas, fill = cor, viewBox = o "papel" do desenho -->
+      <svg id="empire" viewBox="0 0 30 90">
+        <path d="M14 0H16V16H19V26H22V40H26V90H4V40H8V26H11V16H14Z" fill="#2d364b" />
+      </svg>
+      <svg id="estatua" viewBox="0 0 60 96">
+        <g fill="#3a4561">
+          <rect x="8" y="90" width="44" height="6" />
+          <rect x="14" y="76" width="32" height="14" />
+          <path d="M22 78L24 44Q30 38 36 44L38 78Z" />
+          <path d="M35 46L44 20L48 22L40 50Z" />
+          <rect x="20" y="54" width="7" height="11" rx="1" />
+          <circle cx="30" cy="36" r="6" />
+          <path d="M24 33L20 28M27 31L25 24M30 30V22M33 31L35 24M36 33L40 28" stroke="#3a4561" stroke-width="2" fill="none" />
+          <rect x="43" y="11" width="6" height="9" />
+        </g>
+        <path d="M46 1Q51 7 46 11Q41 7 46 1Z" fill="#fbc22e" /> <!-- a chama da tocha -->
+      </svg>
+    </div>
+
+    <div class="street" aria-hidden="true">
+      <svg class="taxi" id="taxi" viewBox="0 0 64 28">
+        <path d="M3 22Q3 17 9 16L15 8Q16 7 18 7H42Q44 7 45 8L51 16Q61 16 61 22V23H3Z" fill="#fbc22e" />
+        <polygon points="18,9 28,9 28,16 13,16" fill="#1d2230" />
+        <polygon points="31,9 42,9 48,16 31,16" fill="#1d2230" />
+        <rect x="26" y="2" width="12" height="5" rx="1" fill="#fff" />
+        <rect x="3" y="19" width="58" height="2" fill="#111" opacity=".6" />
+        <circle cx="16" cy="24" r="4" fill="#0b0d13" stroke="#4a5470" />
+        <circle cx="48" cy="24" r="4" fill="#0b0d13" stroke="#4a5470" />
+        <rect x="59" y="17" width="3" height="3" fill="#fff" />
+      </svg>
+      <div class="stop">NY</div>
+    </div>
+  </div>
+
   <main class="page">
     <!-- TIMER: o card com o relógio e os botões -->
     <section class="timer">

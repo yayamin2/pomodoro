@@ -240,3 +240,80 @@ button.sm {
 .timer.pausa .bar-fill {
   background: var(--break);
 }
+/* SKYLINE: position:relative faz esta caixa ser a "referência" dos filhos com position:absolute */
+.skyline {
+  position: relative;
+  height: 96px;
+  margin-top: 14px;
+  overflow: hidden; /* corta o que passar da caixa */
+}
+.skyline svg {
+  position: absolute; /* posicionado em relação ao .skyline */
+  bottom: 0; /* colado no "chão" */
+  z-index: 1; /* fica na frente dos prédios comuns */
+}
+#empire {
+  /* # = elemento com id="empire" */
+  height: 90px;
+  width: 4.5%;
+  left: 34%; /* o JavaScript ajusta isso para ele não ficar em cima de outro prédio */
+}
+#estatua {
+  height: 93px;
+  width: 58px;
+  right: 2%; /* colada no canto direito */
+}
+
+/* PRÉDIOS E JANELAS: criados pelo JavaScript */
+.predio {
+  position: absolute;
+  bottom: 0;
+  background: #232938;
+}
+.janela {
+  position: absolute;
+  width: 5px;
+  height: 5px;
+  background: var(--taxi);
+}
+
+/* RUA: a linha pontilhada onde o táxi anda */
+.street {
+  position: relative;
+  height: 36px;
+  margin-bottom: 16px;
+  border-bottom: 2px dashed var(--line);
+}
+.taxi {
+  position: absolute;
+  bottom: 6px;
+  left: 0;
+  width: 64px;
+  height: 28px;
+  transition: left 0.4s linear; /* o táxi desliza em vez de dar pulos */
+}
+/* a classe "rolando" é ligada pelo JavaScript só quando o timer está rodando */
+.taxi.rolando {
+  animation: balanco 0.35s infinite alternate;
+}
+/* ANIMAÇÃO: @keyframes descreve o movimento (sobe 1,5px). "alternate" faz ir e voltar */
+@keyframes balanco {
+  to {
+    transform: translateY(-1.5px);
+  }
+}
+
+/* PARADA: o círculo amarelo no fim da rua */
+.stop {
+  position: absolute;
+  right: 0;
+  bottom: 7px;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--taxi);
+  color: #111;
+  font-weight: 800;
+  display: grid;
+  place-items: center; /* centraliza a letra no meio */
+}
