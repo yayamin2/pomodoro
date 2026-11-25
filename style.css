@@ -325,3 +325,38 @@ button.sm {
   display: grid;
   place-items: center; /* centraliza a letra no meio */
 }
+/* HINT: o texto explicativo em cinza embaixo do título */
+.hint {
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1.6; /* espaço entre as linhas do texto */
+  margin: -8px 0 16px; /* margem negativa: puxa o texto para mais perto do título */
+}
+
+/* IDEIAS: a lista, tirando os "pontinhos" padrão do navegador */
+.ideas {
+  list-style: none;
+  display: grid;
+  gap: 8px;
+  margin-top: 16px;
+}
+.ideas li {
+  display: flex;
+  justify-content: space-between; /* texto na esquerda, botão na direita */
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  font-size: 16px;
+}
+.ideas li span {
+  min-width: 0;
+  overflow-wrap: anywhere; /* quebra palavras muito longas em vez de estourar o card */
+}
+/* a mensagem de "vazio" não precisa de caixa nem borda */
+.ideas li.vazio {
+  border: 0;
+  padding: 0;
+  color: var(--muted);
+}

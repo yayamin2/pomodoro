@@ -84,6 +84,16 @@
       </div>
       <div class="tasks" id="tasks"></div>
     </section>
+    <!-- IDEIAS: um lugar para anotar pensamentos sem sair do foco. A lista (id="ideas") é desenhada pelo JavaScript -->
+    <section class="card">
+      <h2>Estacionamento de ideias</h2>
+      <p class="hint">Bateu vontade de pesquisar outra coisa? Anote aqui em 2 segundos e volte pro foco. Você vê depois, na pausa.</p>
+      <div class="add">
+        <input type="text" id="i-text" placeholder="Pensamento ou dúvida">
+        <button class="go" id="add-idea">Guardar</button>
+      </div>
+      <ul class="ideas" id="ideas"></ul> <!-- ul = lista; cada ideia vira um <li> -->
+    </section>
   </main>
 
   <!-- JAVASCRIPT: fica no FIM do body para rodar só depois que a página inteira existe -->

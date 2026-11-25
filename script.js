@@ -286,3 +286,68 @@ function desenharCidade() {
 }
 
 desenharCidade();
+
+const CHAVE_IDEIAS = "foco-ny-ideias";
+
+function carregarIdeias() {
+  try {
+    const texto = localStorage.getItem(CHAVE_IDEIAS);
+    return texto ? JSON.parse(texto) : [];
+  } catch (erro) {
+    return [];
+  }
+}
+
+let ideias = carregarIdeias();
+
+const ideiasEl = document.querySelector("#ideas");
+const ideiaInputEl = document.querySelector("#i-text");
+const botaoIdeia = document.querySelector("#add-idea");
+
+function guardarIdeia() {
+  const texto = ideiaInputEl.value.trim();
+  if (texto === "") return; // não guarda ideia vazia
+  ideias.unshift(texto); // unshift coloca no COMEÇO da lista (a mais nova fica em cima). push coloca no fim.
+  ideiaInputEl.value = "";
+  desenharIdeias();
+}
+
+function desenharIdeias() {
+  // salva a lista toda vez que ela é redesenhada (mesmo truque das tarefas)
+  localStorage.setItem(CHAVE_IDEIAS, JSON.stringify(ideias));
+  ideiasEl.innerHTML = "";
+
+  if (ideias.length === 0) {
+    const vazio = document.createElement("li");
+    vazio.className = "vazio";
+    vazio.textContent = "Vazio. Boa, sua cabeça está no foco.";
+    ideiasEl.append(vazio);
+    return;
+  }
+
+  // forEach com 2 parâmetros: o item (texto) e a posição dele na lista (i)
+  ideias.forEach(function (texto, i) {
+    const item = document.createElement("li");
+
+    const span = document.createElement("span");
+    span.textContent = texto; // textContent é seguro: nunca interpreta como código
+
+    const remover = document.createElement("button");
+    remover.className = "sm";
+    remover.textContent = "×";
+    remover.addEventListener("click", function () {
+      ideias.splice(i, 1); // splice(posição, quantos) remove, igual ao ArrayList.remove(índice)
+      desenharIdeias();
+    });
+
+    item.append(span, remover);
+    ideiasEl.append(item);
+  });
+}
+
+botaoIdeia.addEventListener("click", guardarIdeia);
+ideiaInputEl.addEventListener("keydown", function (e) {
+  if (e.key === "Enter") guardarIdeia();
+});
+
+desenharIdeias();
