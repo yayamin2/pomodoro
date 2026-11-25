@@ -61,9 +61,29 @@ botaoToggle.addEventListener("click", alternar);
 botaoReiniciar.addEventListener("click", reiniciar);
 
 desenhar();
-// Uma LISTA (array) de objetos.
+// Uma LISTA (array) de objetos. Cada tarefa é assim: { id, nome, minutos, feita }
 
-let tarefas = [];
+// Nome da "gaveta" onde guardamos as tarefas no navegador
+const CHAVE = "foco-ny-tarefas";
+
+// Lê as tarefas salvas. Se não tiver nada (ou der erro), devolve uma lista vazia.
+function carregar() {
+  try {
+    const texto = localStorage.getItem(CHAVE); // devolve o texto salvo, ou null se não existir
+    return texto ? JSON.parse(texto) : []; // JSON.parse: transforma o texto de volta em lista
+  } catch (erro) {
+    return []; // try/catch igual ao do Java
+  }
+}
+
+// Guarda a lista de tarefas na gaveta
+function salvar() {
+  // localStorage só guarda TEXTO. JSON.stringify transforma a lista em texto.
+  localStorage.setItem(CHAVE, JSON.stringify(tarefas));
+}
+
+// Ao abrir a página, já começa com o que estava salvo
+let tarefas = carregar();
 
 const listaEl = document.querySelector("#tasks");
 const nomeEl = document.querySelector("#t-name");
@@ -88,6 +108,7 @@ function adicionarTarefa() {
 
 // Redesenha a lista inteira a partir do array "tarefas"
 function desenharTarefas() {
+  salvar(); // toda vez que a lista é redesenhada, ela também é salva
   listaEl.innerHTML = ""; // esvazia a lista na tela antes de desenhar de novo
 
   if (tarefas.length === 0) {
