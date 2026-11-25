@@ -9,7 +9,7 @@ let modo = "foco";
 let restante = DURACOES[modo];
 let rodando = false;
 let intervalo = null;
-let ciclo = 0;
+let ciclo = 0; // quantos focos completos já fizemos neste ciclo
 
 const tempoEl = document.querySelector("#time");
 const barraEl = document.querySelector("#bar-fill");
@@ -20,16 +20,15 @@ const modoEl = document.querySelector("#modo");
 const proximaEl = document.querySelector("#proxima");
 const timerEl = document.querySelector(".timer");
 const bolinhas = document.querySelectorAll("#dots span");
-const taxiEl = document.querySelector("#taxi");
+const taxiEl = document.querySelector("#taxi"); // o táxi da rua
 
 function formatar(segundos) {
   const min = Math.floor(segundos / 60); // Math.floor arredonda para baixo
   const seg = segundos % 60;
-  // padStart(2, '0') completa com zero à esquerda: "5" vira "05"
+  // padStart(2, '0') completa com zero à esquerda, "5" vira "05"
   return String(min).padStart(2, "0") + ":" + String(seg).padStart(2, "0");
 }
 
-// Texto do aviso "o que vem depois"
 function textoProxima() {
   if (modo !== "foco") return "Depois da pausa: volta pro foco";
   // se este for o 4º foco, a próxima parada é a pausa longa
@@ -40,9 +39,10 @@ function textoProxima() {
 }
 
 function desenhar() {
-  const total = DURACOES[modo]; // duração total do bloco atual
+  const total = DURACOES[modo];
   tempoEl.textContent = formatar(restante);
   barraEl.style.width = (1 - restante / total) * 100 + "%";
+
   // TÁXI: anda pela rua conforme o progresso (0 = começo, 1 = fim)
   const andou = 1 - restante / total;
   // calc() mistura % e px: a rua inteira menos o espaço do táxi e da parada (98px)
@@ -80,10 +80,9 @@ function trocarModo(novo) {
   desenhar();
 }
 
-// Chamada quando o relógio chega a zero: decide qual é o próximo bloco
 function terminarBloco() {
   if (modo === "foco") {
-    ciclo++; // completou mais um foco
+    ciclo++;
     if (ciclo >= FOCOS_ATE_LONGA) {
       ciclo = 0; // recomeça a contagem das bolinhas
       trocarModo("longa");
@@ -91,7 +90,7 @@ function terminarBloco() {
       trocarModo("curta");
     }
   } else {
-    trocarModo("foco"); // depois de qualquer pausa, volta ao foco
+    trocarModo("foco");
   }
 }
 
@@ -123,6 +122,7 @@ function reiniciar() {
   desenhar();
 }
 
+// Pular: foco vira pausa curta (sem contar o ciclo); pausa vira foco
 function pular() {
   trocarModo(modo === "foco" ? "curta" : "foco");
 }
@@ -132,9 +132,7 @@ botaoReiniciar.addEventListener("click", reiniciar);
 botaoPular.addEventListener("click", pular);
 
 desenhar();
-// Uma LISTA (array) de objetos. Cada tarefa é assim: { id, nome, minutos, feita }
 
-// Nome da "gaveta" onde guardamos as tarefas no navegador
 const CHAVE = "foco-ny-tarefas";
 
 // Lê as tarefas salvas. Se não tiver nada (ou der erro), devolve uma lista vazia.
@@ -143,11 +141,10 @@ function carregar() {
     const texto = localStorage.getItem(CHAVE); // devolve o texto salvo, ou null se não existir
     return texto ? JSON.parse(texto) : []; // JSON.parse: transforma o texto de volta em lista
   } catch (erro) {
-    return []; // try/catch igual ao do Java
+    return [];
   }
 }
 
-// Guarda a lista de tarefas na gaveta
 function salvar() {
   // localStorage só guarda TEXTO. JSON.stringify transforma a lista em texto.
   localStorage.setItem(CHAVE, JSON.stringify(tarefas));
@@ -164,7 +161,7 @@ const botaoAdd = document.querySelector("#add-task");
 // Cria uma tarefa nova e coloca na lista
 function adicionarTarefa() {
   const nome = nomeEl.value.trim(); // .value = o que foi digitado; trim() tira espaços das pontas
-  if (nome === "") return; // se estiver vazio, sai da função sem fazer nada
+  if (nome === "") return;
   const minutos = Number(minutosEl.value) || 25; // Number converte texto em número; se for inválido, usa 25
   tarefas.push({
     // push = add do ArrayList
@@ -232,16 +229,16 @@ function desenharTarefas() {
 // EVENTOS
 botaoAdd.addEventListener("click", adicionarTarefa);
 nomeEl.addEventListener("keydown", function (e) {
-  if (e.key === "Enter") adicionarTarefa(); // apertar Enter também adiciona
+  if (e.key === "Enter") adicionarTarefa();
 });
 
-// Primeira vez: mostra a mensagem de "nenhuma tarefa"
 desenharTarefas();
-// ===================== SKYLINE =====================
+
 const cidadeEl = document.querySelector("#sky");
 const empireEl = document.querySelector("#empire");
 
 function desenharCidade() {
+  const larguraTotal = cidadeEl.clientWidth; // largura da cidade em pixels
   let x = 0; // posição horizontal atual, em % da largura
   let semente = 7; // número inicial do "sorteio". Fixo = o desenho é sempre o mesmo
   let empireColocado = false;
@@ -252,14 +249,13 @@ function desenharCidade() {
     return semente / 233280;
   }
 
-  // while repete enquanto a condição for verdadeira, como no Java
   while (x < 86) {
-    // ao chegar perto de 34%, reserva um espaço para o Empire State
+    // ao chegar perto de 34%, reserva o espaço EXATO do Empire State
     if (!empireColocado && x >= 34) {
       empireEl.style.left = x + "%";
-      x += 4.9;
+      x += (30 / larguraTotal) * 100 + 0.4; // 30px do desenho convertidos para % + uma folguinha
       empireColocado = true;
-      continue; // pula para a próxima volta do while
+      continue;
     }
 
     const largura = 3 + sorteio() * 5; // largura entre 3% e 8%
@@ -270,17 +266,21 @@ function desenharCidade() {
     predio.style.left = x + "%";
     predio.style.width = largura + "%";
     predio.style.height = altura + "px";
-    cidadeEl.append(predio);
 
-    // em alguns prédios (cerca de 45%), acende uma janelinha amarela
-    if (sorteio() > 0.55) {
+    // JANELAS: cada uma ocupa 4px + 5px de espaço = 9px.
+    const larguraPx = (largura / 100) * larguraTotal; // largura do prédio em pixels
+    const colunas = Math.floor((larguraPx - 7) / 9); // quantas cabem na horizontal
+    const linhas = Math.floor((altura - 9) / 9); // quantas cabem na vertical
+
+    // for: repete colunas × linhas vezes
+    for (let i = 0; i < colunas * linhas; i++) {
       const janela = document.createElement("div");
-      janela.className = "janela";
-      janela.style.left = x + largura * sorteio() * 0.7 + "%";
-      janela.style.bottom = altura * (0.4 + sorteio() * 0.5) + "px";
-      cidadeEl.append(janela);
+      // cerca de 40% das janelas ficam acesas (sorteio acima de 0.6)
+      janela.className = "janela" + (sorteio() > 0.6 ? " acesa" : "");
+      predio.append(janela); // a janela entra DENTRO do prédio
     }
 
+    cidadeEl.append(predio);
     x += largura + 0.2; // anda para o lado e deixa um espacinho entre os prédios
   }
 }

@@ -253,10 +253,9 @@ button.sm {
   z-index: 1; /* fica na frente dos prédios comuns */
 }
 #empire {
-  /* # = elemento com id="empire" */
   height: 90px;
-  width: 4.5%;
-  left: 34%; /* o JavaScript ajusta isso para ele não ficar em cima de outro prédio */
+  width: 30px; /* tamanho real do desenho, sem sobra */
+  left: 34%;
 }
 #estatua {
   height: 93px;
@@ -264,16 +263,25 @@ button.sm {
   right: 2%; /* colada no canto direito */
 }
 
-/* PRÉDIOS E JANELAS: criados pelo JavaScript */
+/* PRÉDIO: também é uma "caixa de janelas". flex + wrap: os filhos vão enchendo a linha e quebram para a próxima */
 .predio {
   position: absolute;
   bottom: 0;
   background: #232938;
+  display: flex;
+  flex-wrap: wrap;
+  align-content: flex-start; /* as janelas começam do topo do prédio */
+  gap: 5px;
+  padding: 7px 6px;
 }
+
+/* JANELA: apagada por padrão; a classe "acesa" deixa amarela */
 .janela {
-  position: absolute;
-  width: 5px;
-  height: 5px;
+  width: 4px;
+  height: 4px;
+  background: #2d364b;
+}
+.janela.acesa {
   background: var(--taxi);
 }
 
