@@ -1,12 +1,21 @@
-const DURACAO = 25 * 60;
-let restante = DURACAO;
+const DURACOES = { foco: 5, curta: 3, longa: 4 };
+const FOCOS_ATE_LONGA = 4; // depois de 4 focos, vem a pausa longa
+
+let modo = "foco";
+let restante = DURACOES[modo];
 let rodando = false;
 let intervalo = null;
+let ciclo = 0;
 
 const tempoEl = document.querySelector("#time");
 const barraEl = document.querySelector("#bar-fill");
 const botaoToggle = document.querySelector("#toggle");
 const botaoReiniciar = document.querySelector("#reset");
+const botaoPular = document.querySelector("#skip");
+const modoEl = document.querySelector("#modo");
+const proximaEl = document.querySelector("#proxima");
+const timerEl = document.querySelector(".timer");
+const bolinhas = document.querySelectorAll("#dots span");
 
 function formatar(segundos) {
   const min = Math.floor(segundos / 60); // Math.floor arredonda para baixo
@@ -15,27 +24,74 @@ function formatar(segundos) {
   return String(min).padStart(2, "0") + ":" + String(seg).padStart(2, "0");
 }
 
+// Texto do aviso "o que vem depois"
+function textoProxima() {
+  if (modo !== "foco") return "Depois da pausa: volta pro foco";
+  // se este for o 4º foco, a próxima parada é a pausa longa
+  if (ciclo + 1 >= FOCOS_ATE_LONGA) {
+    return "Próxima parada: pausa longa de " + DURACOES.longa / 60 + " min";
+  }
+  return "Próxima parada: pausa de " + DURACOES.curta / 60 + " min";
+}
+
 function desenhar() {
-  tempoEl.textContent = formatar(restante); // troca o texto do relógio
-  const progresso = (1 - restante / DURACAO) * 100; // quanto já passou, em %
-  barraEl.style.width = progresso + "%"; // muda a largura da barra amarela
-  // o texto do botão muda conforme a situação (operador ternário: condição ? se_sim : se_não)
+  const total = DURACOES[modo]; // duração total do bloco atual
+  tempoEl.textContent = formatar(restante);
+  barraEl.style.width = (1 - restante / total) * 100 + "%";
+
+  if (modo === "foco") modoEl.textContent = "Foco";
+  else if (modo === "curta") modoEl.textContent = "Pausa curta";
+  else modoEl.textContent = "Pausa longa";
+
+  // classList.toggle("pausa", condição): liga a classe se for true, tira se for false
+  timerEl.classList.toggle("pausa", modo !== "foco");
+
+  proximaEl.textContent = textoProxima();
+
+  // as bolinhas com índice menor que "ciclo" ficam amarelas (classe "on")
+  bolinhas.forEach(function (b, i) {
+    b.classList.toggle("on", i < ciclo);
+  });
+
   botaoToggle.textContent = rodando
     ? "Pausar"
-    : restante < DURACAO
+    : restante < total
       ? "Continuar"
       : "Começar";
-  document.title = formatar(restante) + " · Foco"; // mostra o tempo na aba do navegador
+  document.title = formatar(restante) + " · Foco";
+}
+
+// Muda para outro bloco, para o relógio e deixa pronto para começar
+function trocarModo(novo) {
+  clearInterval(intervalo);
+  rodando = false;
+  modo = novo;
+  restante = DURACOES[modo];
+  desenhar();
+}
+
+// Chamada quando o relógio chega a zero: decide qual é o próximo bloco
+function terminarBloco() {
+  if (modo === "foco") {
+    ciclo++; // completou mais um foco
+    if (ciclo >= FOCOS_ATE_LONGA) {
+      ciclo = 0; // recomeça a contagem das bolinhas
+      trocarModo("longa");
+    } else {
+      trocarModo("curta");
+    }
+  } else {
+    trocarModo("foco"); // depois de qualquer pausa, volta ao foco
+  }
 }
 
 function passarUmSegundo() {
   restante--;
   if (restante <= 0) {
-    clearInterval(intervalo); // para o cronômetro
-    rodando = false;
-    restante = DURACAO;
+    terminarBloco();
+  } else {
+    desenhar();
   }
-  desenhar();
 }
 
 function alternar() {
@@ -44,21 +100,26 @@ function alternar() {
     rodando = false;
   } else {
     rodando = true;
-
     intervalo = setInterval(passarUmSegundo, 1000);
   }
   desenhar();
 }
 
+// Reiniciar: volta o bloco ATUAL ao começo
 function reiniciar() {
   clearInterval(intervalo);
   rodando = false;
-  restante = DURACAO;
+  restante = DURACOES[modo];
   desenhar();
+}
+
+function pular() {
+  trocarModo(modo === "foco" ? "curta" : "foco");
 }
 
 botaoToggle.addEventListener("click", alternar);
 botaoReiniciar.addEventListener("click", reiniciar);
+botaoPular.addEventListener("click", pular);
 
 desenhar();
 // Uma LISTA (array) de objetos. Cada tarefa é assim: { id, nome, minutos, feita }

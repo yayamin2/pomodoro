@@ -7,6 +7,7 @@
   --panel2: #0b0d13; /* fundo escuro: card do timer, botões e campos de texto */
   --line: #2a3040; /* cor das bordas finas */
   --panel: #1b1f2b; /* fundo dos cards (tarefas e outras seções) */
+  --break: #4cc38a; /* verde das pausas */
 }
 
 * {
@@ -198,4 +199,44 @@ button.sm {
 }
 .empty {
   color: var(--muted);
+}
+/* MODO: o nome do bloco atual (Foco / Pausa) */
+.modo {
+  font-size: 19px;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 16px;
+  color: var(--muted);
+  font-size: 16px;
+}
+
+/* DOTS: as 4 bolinhas. Vazias por padrão, amarelas quando têm a classe "on" */
+.dots {
+  display: flex;
+  gap: 8px;
+}
+.dots span {
+  width: 15px;
+  height: 15px;
+  border-radius: 50%; /* 50% = círculo */
+  border: 2px solid var(--muted);
+}
+.dots span.on {
+  background: var(--taxi);
+  border-color: var(--taxi);
+}
+
+.timer.pausa {
+  border-bottom-color: var(--break);
+}
+.timer.pausa .bar-fill {
+  background: var(--break);
 }

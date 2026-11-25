@@ -23,13 +23,19 @@
   <main class="page">
     <!-- TIMER: o card com o relógio e os botões -->
     <section class="timer">
-      <div class="time" id="time">25:00</div> <!-- id: o JavaScript usa para achar este elemento -->
+      <div class="modo" id="modo">Foco</div> <!-- mostra: Foco, Pausa curta ou Pausa longa -->
+      <div class="time" id="time">25:00</div>
       <div class="bar">
         <div class="bar-fill" id="bar-fill"></div>
-      </div> <!-- barra de progresso: uma caixa dentro da outra -->
+      </div>
+      <!-- META: o aviso da próxima parada + as 4 bolinhas dos ciclos -->
+      <div class="meta">
+        <span id="proxima"></span>
+        <div class="dots" id="dots"><span></span><span></span><span></span><span></span></div>
+      </div>
       <div class="btns">
         <button class="go" id="toggle">Começar</button>
-        <button>Pular</button>
+        <button id="skip">Pular</button>
         <button id="reset">Reiniciar</button>
       </div>
     </section>
