@@ -4,6 +4,8 @@
   --muted: #8c93a6; /* cinza para textos secundários */
   --taxi: #fbc22e; /* amarelo de destaque */
   --sans: "Archivo", system-ui, sans-serif; /* fonte */
+  --panel2: #0b0d13;
+  --line: #2a3040;
 }
 
 * {
@@ -37,4 +39,69 @@ header p {
   color: var(--muted);
   font-size: 18px;
   margin-top: 8px;
+}
+/* PAGE: mesma largura e centralização do header */
+.page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+/* TIMER: o card escuro com uma borda amarela grossa embaixo */
+.timer {
+  background: var(--panel2);
+  border: 1px solid var(--line);
+  border-bottom: 6px solid var(--taxi); /* sobrescreve só a borda de baixo */
+  border-radius: 16px; /* cantos arredondados */
+  padding: 26px;
+}
+
+/* TIME: o número gigante */
+.time {
+  font-family: "Barlow Condensed", var(--sans);
+  font-size: 120px;
+  font-weight: 700;
+  line-height: 1; /* tira o espaço extra em volta do número */
+  letter-spacing: 2px;
+  margin-bottom: 20px;
+}
+
+/* BAR: a trilha cinza; a .bar-fill é a parte amarela dentro dela */
+.bar {
+  height: 11px;
+  background: #252b3b;
+  border-radius: 6px;
+  overflow: hidden; /* corta o que passar dos cantos arredondados */
+}
+.bar-fill {
+  height: 100%;
+  width: 40%;
+  background: var(--taxi);
+}
+
+/* BTNS: os botões lado a lado */
+.btns {
+  display: flex; 
+  gap: 12px; /* espaço entre eles */
+  margin-top: 20px;
+  flex-wrap: wrap; /* quebra de linha no celular */
+}
+
+/* BUTTON: estilo de todos os botões */
+button {
+  font: 600 17px var(--sans);
+  color: var(--text);
+  background: var(--panel2);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 0 20px;
+  height: 52px;
+  cursor: pointer; 
+}
+button:hover {
+  border-color: var(--muted); 
+button.go {
+  background: var(--taxi); /* o botão principal fica amarelo */
+  border-color: var(--taxi);
+  color: #171717;
 }

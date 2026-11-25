@@ -8,7 +8,7 @@
   <!-- Fonte do Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;700;800&family=Barlow+Condensed:wght@700&display=swap" rel="stylesheet">
   <!-- Liga o arquivo de estilos -->
   <link rel="stylesheet" href="style.css">
 </head>
@@ -18,6 +18,22 @@
     <h1>Foco · Nova York</h1>
     <p>Uma coisa de cada vez. Escolha a linha, aperte o play e vá até a próxima parada.</p>
   </header>
+
+  <!-- MAIN: o conteúdo principal da página -->
+  <main class="page">
+    <!-- TIMER: o card com o relógio e os botões -->
+    <section class="timer">
+      <div class="time">25:00</div> <!-- por enquanto é texto fixo; o JavaScript vai mudar depois -->
+      <div class="bar">
+        <div class="bar-fill"></div>
+      </div> <!-- barra de progresso: uma caixa dentro da outra -->
+      <div class="btns">
+        <button class="go">Começar</button>
+        <button>Pular</button>
+        <button>Reiniciar</button>
+      </div>
+    </section>
+  </main>
 </body>
 
 </html>
