@@ -23,17 +23,30 @@
   <main class="page">
     <!-- TIMER: o card com o relógio e os botões -->
     <section class="timer">
-      <div class="time">25:00</div> <!-- por enquanto é texto fixo; o JavaScript vai mudar depois -->
+      <div class="time" id="time">25:00</div> <!-- id: o JavaScript usa para achar este elemento -->
       <div class="bar">
-        <div class="bar-fill"></div>
+        <div class="bar-fill" id="bar-fill"></div>
       </div> <!-- barra de progresso: uma caixa dentro da outra -->
       <div class="btns">
-        <button class="go">Começar</button>
+        <button class="go" id="toggle">Começar</button>
         <button>Pular</button>
-        <button>Reiniciar</button>
+        <button id="reset">Reiniciar</button>
       </div>
     </section>
+    <!-- TAREFAS: nome + minutos estimados. A lista (id="tasks") é desenhada pelo JavaScript -->
+    <section class="card">
+      <h2>Tarefas de hoje</h2>
+      <div class="add">
+        <input type="text" id="t-name" placeholder="Ex.: estudar arrays em Java">
+        <input type="number" id="t-est" value="25" min="1" max="600" aria-label="Minutos estimados">
+        <button class="go" id="add-task">Adicionar</button>
+      </div>
+      <div class="tasks" id="tasks"></div>
+    </section>
   </main>
+
+  <!-- JAVASCRIPT: fica no FIM do body para rodar só depois que a página inteira existe -->
+  <script src="script.js"></script>
 </body>
 
 </html>

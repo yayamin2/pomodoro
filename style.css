@@ -4,8 +4,9 @@
   --muted: #8c93a6; /* cinza para textos secundários */
   --taxi: #fbc22e; /* amarelo de destaque */
   --sans: "Archivo", system-ui, sans-serif; /* fonte */
-  --panel2: #0b0d13;
-  --line: #2a3040;
+  --panel2: #0b0d13; /* fundo escuro: card do timer, botões e campos de texto */
+  --line: #2a3040; /* cor das bordas finas */
+  --panel: #1b1f2b; /* fundo dos cards (tarefas e outras seções) */
 }
 
 * {
@@ -81,7 +82,7 @@ header p {
 
 /* BTNS: os botões lado a lado */
 .btns {
-  display: flex; 
+  display: flex;
   gap: 12px; /* espaço entre eles */
   margin-top: 20px;
   flex-wrap: wrap; /* quebra de linha no celular */
@@ -96,12 +97,105 @@ button {
   border-radius: 10px;
   padding: 0 20px;
   height: 52px;
-  cursor: pointer; 
+  cursor: pointer;
 }
 button:hover {
-  border-color: var(--muted); 
+  border-color: var(--muted); /* :hover = quando o mouse está em cima */
+}
+
 button.go {
   background: var(--taxi); /* o botão principal fica amarelo */
   border-color: var(--taxi);
   color: #171717;
+}
+/* CARD: caixa genérica que vamos reaproveitar em outras seções */
+.card {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 26px;
+  margin: 26px 0 40px; /* espaço: cima, laterais, baixo */
+}
+
+h2 {
+  font-size: 22px;
+  font-weight: 800;
+  margin-bottom: 18px;
+}
+
+/* ADD: a linha com o campo de texto, os minutos e o botão */
+.add {
+  display: flex;
+  gap: 10px;
+}
+
+/* INPUT: os campos onde se digita */
+input {
+  font: inherit; /* usa a mesma fonte do resto da página */
+  font-size: 17px;
+  color: var(--text);
+  background: var(--panel2);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 0 16px;
+  height: 52px;
+  min-width: 0; /* deixa o campo encolher em telas pequenas */
+}
+input[type="text"] {
+  flex: 1; /* o campo de texto ocupa todo o espaço que sobrar */
+}
+input[type="number"] {
+  width: 100px;
+}
+input::placeholder {
+  color: #6d7488; /* cor do texto de exemplo */
+}
+/* destaque amarelo ao navegar pelo teclado */
+input:focus-visible,
+button:focus-visible {
+  outline: 2px solid var(--taxi);
+  outline-offset: 2px;
+}
+
+/* TASKS: a lista e cada linha de tarefa */
+.tasks {
+  display: grid;
+  gap: 12px;
+  margin-top: 24px;
+}
+.task {
+  display: flex;
+  align-items: center; /* centraliza na vertical */
+  gap: 12px;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 14px;
+}
+.task.done {
+  opacity: 0.5; /* tarefa concluída fica apagada */
+}
+.task.done .nm {
+  text-decoration: line-through; /* e riscada */
+}
+.tx {
+  flex: 1; /* o texto ocupa o espaço, empurrando os botões para a direita */
+  min-width: 0;
+}
+.nm {
+  font-weight: 700;
+  font-size: 18px;
+}
+.sub {
+  color: var(--muted);
+  font-size: 15px;
+  margin-top: 2px;
+}
+button.sm {
+  height: 40px; /* versão pequena do botão */
+  font-size: 15px;
+  padding: 0 14px;
+}
+.empty {
+  color: var(--muted);
 }
