@@ -271,11 +271,15 @@ function desenharEstatisticas() {
 // Botão "Apagar tudo e recomeçar"
 botaoApagar.addEventListener("click", function () {
   // confirm() abre uma caixinha com OK/Cancelar e devolve true ou false (igual ao JOptionPane do Java)
-  if (!confirm("Apagar tarefas, ideias e histórico? Não dá para desfazer."))
+  // Botão "Apagar tudo e recomeçar"
+botaoApagar.addEventListener("click", function () {
+  // confirm() abre uma caixinha com OK/Cancelar e devolve true ou false (igual ao JOptionPane do Java)
+  if (!confirm("Apagar tarefas, ideias, plano e histórico? Não dá para desfazer."))
     return;
   localStorage.removeItem(CHAVE); // gaveta das tarefas
   localStorage.removeItem(CHAVE_IDEIAS); // gaveta das ideias
   localStorage.removeItem(CHAVE_HIST); // gaveta do histórico
+  localStorage.removeItem(CHAVE_PLANO); // gaveta do organizador
   location.reload(); // recarrega a página já sem nada
 });
 
@@ -305,17 +309,21 @@ const minutosEl = document.querySelector("#t-est");
 const botaoAdd = document.querySelector("#add-task");
 
 // Cria uma tarefa nova e coloca na lista
-function adicionarTarefa() {
-  const nome = nomeEl.value.trim(); // .value = o que foi digitado; trim() tira espaços das pontas
-  if (nome === "") return;
-  const minutos = Number(minutosEl.value) || 25; // Number converte texto em número; se for inválido, usa 25
+// Só cria a tarefa e coloca na lista (o organizador também usa esta função)
+function criarTarefa(nome, minutos) {
   tarefas.push({
-    // push = add do ArrayList
     id: Date.now(), // Date.now() = hora atual em milissegundos: serve como id único
     nome: nome,
     minutos: minutos,
     feita: false,
   });
+}
+
+// Lê o que foi digitado nos campos e chama criarTarefa
+function adicionarTarefa() {
+  const nome = nomeEl.value.trim(); // trim() tira espaços das pontas
+  if (nome === "") return;
+  criarTarefa(nome, Number(minutosEl.value) || 25); // se os minutos forem inválidos, usa 25
   nomeEl.value = ""; // limpa o campo
   desenharTarefas();
 }
@@ -499,3 +507,167 @@ ideiaInputEl.addEventListener("keydown", function (e) {
 });
 
 desenharIdeias();
+// ============================================================
+// ORGANIZADOR DA SEMANA
+// ============================================================
+
+// O plano é um OBJETO usado como mapa, igual ao histórico:
+// a chave é a data e o valor é a lista de itens daquele dia.
+// Parece um HashMap<String, List<Item>> do Java.
+// Ex.: { "2026-11-25": [ { id, texto, feito }, ... ] }
+const CHAVE_PLANO = "foco-ny-plano";
+
+function carregarPlano() {
+  try {
+    const texto = localStorage.getItem(CHAVE_PLANO);
+    return texto ? JSON.parse(texto) : {};
+  } catch (erro) {
+    return {};
+  }
+}
+
+let plano = carregarPlano();
+
+// Quantas semanas estamos afastados da atual: 0 = esta, -1 = passada, 1 = próxima
+let semanaOffset = 0;
+
+const planoEl = document.querySelector("#plan");
+const rotuloEl = document.querySelector("#w-label");
+const botaoAnterior = document.querySelector("#w-prev");
+const botaoProxima = document.querySelector("#w-next");
+
+function salvarPlano() {
+  localStorage.setItem(CHAVE_PLANO, JSON.stringify(plano));
+}
+
+// Devolve uma lista com as 7 datas (segunda a domingo) da semana mostrada
+function diasDaSemana() {
+  const inicio = new Date();
+  // getDay() dá 0 para domingo. (getDay() + 6) % 7 faz a segunda virar 0.
+  // Voltamos esse tanto de dias para cair na segunda e somamos as semanas de deslocamento.
+  inicio.setDate(
+    inicio.getDate() - ((inicio.getDay() + 6) % 7) + semanaOffset * 7,
+  );
+  const lista = [];
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(inicio); // new Date(outraData) faz uma cópia
+    d.setDate(inicio.getDate() + i);
+    lista.push(d);
+  }
+  return lista;
+}
+
+// Desenha as 7 colunas
+function desenharPlano() {
+  const dias = diasDaSemana();
+  const nomes = ["dom", "seg", "ter", "qua", "qui", "sex", "sáb"];
+  const chaveHoje = chaveDoDia(new Date());
+
+  // texto entre as setas
+  const formato = { day: "numeric", month: "short" };
+  rotuloEl.textContent =
+    semanaOffset === 0
+      ? "Esta semana"
+      : dias[0].toLocaleDateString("pt-BR", formato) +
+        " – " +
+        dias[6].toLocaleDateString("pt-BR", formato);
+
+  planoEl.innerHTML = "";
+
+  dias.forEach(function (d) {
+    const chave = chaveDoDia(d);
+    const itens = plano[chave] || []; // se o dia não tem nada ainda, usa uma lista vazia
+
+    const coluna = document.createElement("div");
+    coluna.className = "pday" + (chave === chaveHoje ? " hoje" : "");
+    coluna.dataset.dia = chave; // dataset guarda um dado dentro da tag: data-dia="2026-11-25"
+
+    const titulo = document.createElement("h3");
+    const nomeDia = document.createElement("span");
+    nomeDia.textContent = nomes[d.getDay()];
+    const numeroDia = document.createElement("span");
+    numeroDia.textContent = d.getDate();
+    titulo.append(nomeDia, numeroDia);
+    coluna.append(titulo);
+
+    // um item por vez
+    itens.forEach(function (item) {
+      const linha = document.createElement("div");
+      linha.className = "pit" + (item.feito ? " done" : "");
+
+      const marcar = document.createElement("button");
+      marcar.textContent = item.feito ? "✓" : "○";
+      marcar.addEventListener("click", function () {
+        item.feito = !item.feito; // inverte: feito vira não feito e vice-versa
+        salvarPlano();
+        desenharPlano();
+      });
+
+      const texto = document.createElement("span");
+      texto.textContent = item.texto;
+
+      linha.append(marcar, texto);
+
+      // o botão → só aparece em itens ainda não feitos
+      if (!item.feito) {
+        const enviar = document.createElement("button");
+        enviar.textContent = "→";
+        enviar.title = "Levar pro foco"; // title = a dica que aparece ao passar o mouse
+        enviar.addEventListener("click", function () {
+          criarTarefa(item.texto, 25); // vira uma tarefa de 25 min nas "Tarefas de hoje"
+          plano[chave] = plano[chave].filter(function (x) {
+            return x.id !== item.id; // tira do plano
+          });
+          salvarPlano();
+          desenharPlano();
+          desenharTarefas(); // atualiza também a lista de tarefas
+        });
+        linha.append(enviar);
+      }
+
+      const remover = document.createElement("button");
+      remover.textContent = "×";
+      remover.addEventListener("click", function () {
+        plano[chave] = plano[chave].filter(function (x) {
+          return x.id !== item.id;
+        });
+        salvarPlano();
+        desenharPlano();
+      });
+
+      linha.append(remover);
+      coluna.append(linha);
+    });
+
+    // campo para adicionar item no dia (Enter adiciona)
+    const campo = document.createElement("input");
+    campo.type = "text";
+    campo.placeholder = "+ item";
+    campo.maxLength = 60;
+    campo.addEventListener("keydown", function (e) {
+      if (e.key !== "Enter") return;
+      const texto = campo.value.trim();
+      if (texto === "") return;
+      if (!plano[chave]) plano[chave] = []; // primeiro item do dia: cria a lista
+      plano[chave].push({ id: Date.now(), texto: texto, feito: false });
+      salvarPlano();
+      desenharPlano();
+      // a tela foi redesenhada, então o campo antigo sumiu: devolve o cursor ao do mesmo dia
+      planoEl.querySelector('[data-dia="' + chave + '"] input').focus();
+    });
+    coluna.append(campo);
+
+    planoEl.append(coluna);
+  });
+}
+
+botaoAnterior.addEventListener("click", function () {
+  semanaOffset--;
+  desenharPlano();
+});
+botaoProxima.addEventListener("click", function () {
+  semanaOffset++;
+  desenharPlano();
+});
+
+desenharPlano();
