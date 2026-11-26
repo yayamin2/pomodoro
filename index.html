@@ -74,7 +74,7 @@
         <button id="reset">Reiniciar</button>
       </div>
     </section>
-    <!-- TAREFAS: nome + minutos estimados. A lista (id="tasks") é desenhada pelo JavaScript -->
+    <!-- TAREFAS: nome + minutos estimados -->
     <section class="card">
       <h2>Tarefas de hoje</h2>
       <div class="add">
@@ -84,7 +84,7 @@
       </div>
       <div class="tasks" id="tasks"></div>
     </section>
-    <!-- IDEIAS: um lugar para anotar pensamentos sem sair do foco. A lista (id="ideas") é desenhada pelo JavaScript -->
+    <!-- IDEIAS: um lugar para anotar pensamentos sem sair do foco -->
     <section class="card">
       <h2>Estacionamento de ideias</h2>
       <p class="hint">Bateu vontade de pesquisar outra coisa? Anote aqui em 2 segundos e volte pro foco. Você vê depois, na pausa.</p>
@@ -96,7 +96,24 @@
     </section>
   </main>
 
-  <!-- JAVASCRIPT: fica no FIM do body para rodar só depois que a página inteira existe -->
+  <section class="card">
+    <h2>Hoje em números</h2>
+    <div class="tiles">
+      <div class="tile"><b id="s-min">0 min</b><span>tempo focado</span></div>
+      <div class="tile"><b id="s-focos">0</b><span>focos completos</span></div>
+      <div class="tile"><b id="s-done">0/0</b><span>tarefas concluídas</span></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Últimos 7 dias</h2>
+    <div class="week" id="week"></div>
+    <div class="foot">
+      <span id="streak"></span>
+      <button class="sm" id="wipe">Apagar tudo e recomeçar</button>
+    </div>
+  </section>
+
   <script src="script.js"></script>
 </body>
 

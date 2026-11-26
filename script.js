@@ -82,6 +82,7 @@ function trocarModo(novo) {
 
 function terminarBloco() {
   if (modo === "foco") {
+    registrarFoco(); // anota mais um foco completo nas estatísticas
     ciclo++;
     if (ciclo >= FOCOS_ATE_LONGA) {
       ciclo = 0; // recomeça a contagem das bolinhas
@@ -96,6 +97,7 @@ function terminarBloco() {
 
 function passarUmSegundo() {
   restante--;
+  if (modo === "foco") registrarSegundo(); // só o tempo de FOCO conta nas estatísticas
   if (restante <= 0) {
     terminarBloco();
   } else {
@@ -132,6 +134,150 @@ botaoReiniciar.addEventListener("click", reiniciar);
 botaoPular.addEventListener("click", pular);
 
 desenhar();
+
+// a chave é a data ("2026-11-25") e o valor guarda { segundos, focos } daquele dia.
+const CHAVE_HIST = "foco-ny-historico"; // mais uma "gaveta" no navegador
+
+function carregarHistorico() {
+  try {
+    const texto = localStorage.getItem(CHAVE_HIST);
+    return texto ? JSON.parse(texto) : {}; // {} = objeto vazio
+  } catch (erro) {
+    return {};
+  }
+}
+
+let historico = carregarHistorico();
+
+const minEl = document.querySelector("#s-min");
+const focosEl = document.querySelector("#s-focos");
+const feitasEl = document.querySelector("#s-done");
+const semanaEl = document.querySelector("#week");
+const sequenciaEl = document.querySelector("#streak");
+const botaoApagar = document.querySelector("#wipe");
+
+// Transforma uma data em texto "AAAA-MM-DD".
+function chaveDoDia(data) {
+  return data.toLocaleDateString("sv-SE");
+}
+
+// Devolve o registro de HOJE e cria um zerado se ainda não existir
+function diaDeHoje() {
+  const chave = chaveDoDia(new Date());
+  if (!historico[chave]) {
+    historico[chave] = { segundos: 0, focos: 0 };
+  }
+  return historico[chave];
+}
+
+// Quantos segundos foram estudados numa data qualquer e 0 se não houver registro
+function segundosDoDia(data) {
+  const registro = historico[chaveDoDia(data)];
+  return registro ? registro.segundos : 0;
+}
+
+function salvarHistorico() {
+  localStorage.setItem(CHAVE_HIST, JSON.stringify(historico));
+}
+
+// Chamada a cada segundo de FOCO
+function registrarSegundo() {
+  diaDeHoje().segundos++;
+  salvarHistorico();
+  desenharEstatisticas();
+}
+
+// Chamada quando um bloco de foco termina
+function registrarFoco() {
+  diaDeHoje().focos++;
+  salvarHistorico();
+  desenharEstatisticas();
+}
+
+// Atualiza os números, o gráfico e a sequência
+function desenharEstatisticas() {
+  const hoje = diaDeHoje();
+  minEl.textContent = Math.floor(hoje.segundos / 60) + " min";
+  focosEl.textContent = hoje.focos;
+  // filter cria uma lista só com as tarefas feitas; .length conta quantas são
+  const feitas = tarefas.filter(function (t) {
+    return t.feita;
+  }).length;
+  feitasEl.textContent = feitas + "/" + tarefas.length;
+
+  // ----- gráfico dos 7 dias -----
+  const nomes = ["dom", "seg", "ter", "qua", "qui", "sex", "sáb"]; // getDay() devolve 0 (domingo) a 6 (sábado)
+  const dias = [];
+  for (let i = 6; i >= 0; i--) {
+    // i = quantos dias atrás: 6, 5, 4... até 0 (hoje)
+    const d = new Date();
+    d.setDate(d.getDate() - i); // volta i dias a partir de hoje
+    dias.push({
+      nome: nomes[d.getDay()],
+      minutos: Math.floor(segundosDoDia(d) / 60),
+    });
+  }
+  // o maior valor da semana serve de "100%" para calcular a altura das barras
+  // (os três pontinhos espalham a lista como argumentos soltos; o 1 evita dividir por zero)
+  const maior = Math.max(
+    1,
+    ...dias.map(function (d) {
+      return d.minutos;
+    }),
+  );
+
+  semanaEl.innerHTML = "";
+  dias.forEach(function (d, i) {
+    const coluna = document.createElement("div");
+    coluna.className = "day" + (i === 6 ? " hoje" : ""); // o último da lista é hoje
+
+    if (d.minutos > 0) {
+      const valor = document.createElement("span");
+      valor.className = "v";
+      valor.textContent = d.minutos + " min";
+      coluna.append(valor);
+    }
+
+    const barra = document.createElement("div");
+    barra.className = "b";
+    // altura proporcional: o maior dia ocupa 135px; dia sem estudo fica com 5px
+    barra.style.height =
+      d.minutos > 0 ? Math.max(8, (d.minutos / maior) * 135) + "px" : "5px";
+
+    coluna.append(barra, d.nome); // append aceita elementos E texto
+    semanaEl.append(coluna);
+  });
+
+  // ----- sequência: dias seguidos estudando -----
+  let sequencia = 0;
+  const dia = new Date();
+  if (segundosDoDia(dia) === 0) {
+    dia.setDate(dia.getDate() - 1); // se hoje ainda não estudou, a contagem começa de ontem
+  }
+  // enquanto o dia tiver tempo registrado, conta e volta mais um dia
+  while (segundosDoDia(dia) > 0) {
+    sequencia++;
+    dia.setDate(dia.getDate() - 1);
+  }
+  sequenciaEl.textContent =
+    sequencia > 0
+      ? "Sequência: " +
+        sequencia +
+        (sequencia === 1 ? " dia" : " dias") +
+        " estudando. Não precisa ser perfeito, só voltar."
+      : "Sem sequência ainda. Um bloco de foco já começa uma.";
+}
+
+// Botão "Apagar tudo e recomeçar"
+botaoApagar.addEventListener("click", function () {
+  // confirm() abre uma caixinha com OK/Cancelar e devolve true ou false (igual ao JOptionPane do Java)
+  if (!confirm("Apagar tarefas, ideias e histórico? Não dá para desfazer."))
+    return;
+  localStorage.removeItem(CHAVE); // gaveta das tarefas
+  localStorage.removeItem(CHAVE_IDEIAS); // gaveta das ideias
+  localStorage.removeItem(CHAVE_HIST); // gaveta do histórico
+  location.reload(); // recarrega a página já sem nada
+});
 
 const CHAVE = "foco-ny-tarefas";
 
@@ -178,6 +324,8 @@ function adicionarTarefa() {
 function desenharTarefas() {
   salvar(); // toda vez que a lista é redesenhada, ela também é salva
   listaEl.innerHTML = ""; // esvazia a lista na tela antes de desenhar de novo
+  desenharEstatisticas(); // atualiza o "tarefas concluídas" sempre que a lista muda
+  listaEl.innerHTML = "";
 
   if (tarefas.length === 0) {
     const vazio = document.createElement("p"); // createElement cria uma tag nova na memória

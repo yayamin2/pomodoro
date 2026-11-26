@@ -360,3 +360,77 @@ button.sm {
   padding: 0;
   color: var(--muted);
 }
+/* TILES: os 3 quadradinhos de estatística. repeat(3, 1fr) = 3 colunas de largura igual */
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+.tile {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 20px;
+}
+.tile b {
+  display: block; /* b é "em linha" por padrão; block faz ocupar a linha toda */
+  font-size: 30px;
+  font-weight: 700;
+}
+.tile span {
+  color: var(--muted);
+  font-size: 16px;
+}
+
+/* WEEK: o gráfico. flex + align-items:flex-end alinha todas as barras pela base */
+.week {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  height: 190px;
+  margin-top: 10px;
+}
+.day {
+  width: 70px;
+  height: 100%;
+  display: flex;
+  flex-direction: column; /* empilha: valor, barra, nome do dia */
+  align-items: center;
+  justify-content: flex-end;
+  color: var(--muted);
+  font-size: 16px;
+}
+.day .v {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 6px;
+}
+.day .b {
+  width: 100%;
+  min-height: 5px; /* dia sem estudo ainda mostra um tracinho */
+  background: #2a3040;
+  border-radius: 6px 6px 0 0;
+  margin-bottom: 8px;
+}
+.day.hoje .b {
+  background: var(--taxi); /* só a barra de hoje é amarela */
+}
+
+.foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+  color: var(--muted);
+}
+
+@media (max-width: 700px) {
+  .tiles {
+    grid-template-columns: 1fr;
+  }
+  .day {
+    width: 36px;
+  }
+}
