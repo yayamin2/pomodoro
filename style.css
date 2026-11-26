@@ -456,7 +456,7 @@ button.sm {
 /* PLAN: as colunas dos dias. auto-fit + minmax cabem quantas der e o resto quebra de linha */
 .plan {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
   gap: 12px;
 }
 .pday {
@@ -599,4 +599,36 @@ details[open] summary::before {
   height: 18px;
   padding: 0;
   accent-color: var(--taxi); /* a cor da caixinha marcada */
+}
+/* REV: a caixa onde aparece o cartão a ser revisado */
+.rev {
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 22px;
+  margin-top: 20px;
+}
+/* :empty = quando a caixa não tem nada dentro. Aí ela some, em vez de ficar uma moldura vazia */
+.rev:empty {
+  display: none;
+}
+.rev .q {
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+.rev .a {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px dashed var(--line);
+  font-size: 18px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+.rev-btns {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 18px;
 }

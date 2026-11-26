@@ -125,6 +125,22 @@
     </section>
 
     <section class="card">
+      <h2>Cartões de revisão</h2>
+      <p class="hint">Escreva uma pergunta e a resposta. O site mostra o cartão de novo depois de 1, 3, 7, 14 e 30 dias, que é quando o cérebro está quase esquecendo.</p>
+      <div class="add">
+        <input type="text" id="c-front" placeholder="Pergunta (ex.: o que é um ArrayList?)">
+        <input type="text" id="c-back" placeholder="Resposta">
+        <button class="go" id="add-card">Criar cartão</button>
+      </div>
+      <p class="note" id="card-count"></p>
+      <div class="rev" id="review"></div>
+      <details>
+        <summary id="card-summary">Todos os cartões</summary>
+        <ul class="ideas" id="card-list"></ul> <!-- reaproveita o estilo da lista de ideias -->
+      </details>
+    </section>
+
+    <section class="card">
       <div class="plan-head">
         <h2>Organizador da semana</h2>
         <div class="plan-nav">
@@ -134,7 +150,7 @@
         </div>
       </div>
       <div class="plan" id="plan"></div>
-      <p class="note">Planeje a semana e, na hora de estudar, mande o item pro foco com o botão →</p>
+      <p class="note">Escreva um item no dia e aperte Enter. Depois, o botão ao lado dele leva o item para as tarefas de hoje →</p>
     </section>
   </main>
 

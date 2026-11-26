@@ -285,11 +285,10 @@ botaoApagar.addEventListener("click", function () {
     !confirm("Apagar tarefas, ideias, plano e histórico? Não dá para desfazer.")
   )
     return;
-  localStorage.removeItem(CHAVE); // gaveta das tarefas
-  localStorage.removeItem(CHAVE_IDEIAS); // gaveta das ideias
-  localStorage.removeItem(CHAVE_HIST); // gaveta do histórico
   localStorage.removeItem(CHAVE_PLANO); // gaveta do organizador
-  location.reload(); // recarrega a página já sem nada
+  localStorage.removeItem(CHAVE_CARTOES); // gaveta dos cartões
+  localStorage.removeItem(CHAVE_CONFIG); // gaveta dos ajustes
+  localStorage.removeItem(CHAVE_PERFIL); // gaveta do nome e da cor
 });
 
 const CHAVE = "foco-ny-tarefas";
@@ -815,3 +814,194 @@ somEl.addEventListener("change", function () {
   config.som = somEl.checked;
   salvarConfig();
 });
+// ============================================================
+// CARTÕES DE REVISÃO (repetição espaçada)
+// ============================================================
+
+const CHAVE_CARTOES = "foco-ny-cartoes";
+
+// A cada acerto seguido, o cartão volta num intervalo maior (em DIAS).
+// É uma versão simples do sistema Leitner. Apps como o Anki usam contas mais sofisticadas.
+const INTERVALOS = [1, 3, 7, 14, 30];
+
+// Cada cartão é um objeto: { id, frente, verso, nivel, proxima }
+//   nivel   = quantos acertos seguidos ele já teve
+//   proxima = a data da próxima revisão ("AAAA-MM-DD")
+function carregarCartoes() {
+  try {
+    const texto = localStorage.getItem(CHAVE_CARTOES);
+    return texto ? JSON.parse(texto) : [];
+  } catch (erro) {
+    return [];
+  }
+}
+
+let cartoes = carregarCartoes();
+let mostrandoResposta = false; // a resposta do cartão atual já foi revelada?
+
+const frenteEl = document.querySelector("#c-front");
+const versoEl = document.querySelector("#c-back");
+const botaoCartao = document.querySelector("#add-card");
+const revisaoEl = document.querySelector("#review");
+const contagemEl = document.querySelector("#card-count");
+const listaCartoesEl = document.querySelector("#card-list");
+const resumoListaEl = document.querySelector("#card-summary");
+
+// Devolve a data de daqui a "dias" dias, no formato "AAAA-MM-DD"
+function somarDias(dias) {
+  const d = new Date();
+  d.setDate(d.getDate() + dias); // setDate lida sozinho com virada de mês e de ano
+  return chaveDoDia(d);
+}
+
+function criarCartao() {
+  const frente = frenteEl.value.trim();
+  const verso = versoEl.value.trim();
+  if (frente === "" || verso === "") return; // precisa de pergunta E resposta
+  cartoes.push({
+    id: Date.now(),
+    frente: frente,
+    verso: verso,
+    nivel: 0,
+    proxima: chaveDoDia(new Date()), // cartão novo já entra para revisar hoje
+  });
+  frenteEl.value = "";
+  versoEl.value = "";
+  frenteEl.focus(); // devolve o cursor para a pergunta, para criar o próximo
+  desenharCartoes();
+}
+
+// Chamada quando a pessoa clica em "Acertei" ou "Errei"
+function responder(cartao, acertou) {
+  if (acertou) {
+    // pega o intervalo do nível atual (e usa o último se o nível passar do tamanho da lista)
+    const dias = INTERVALOS[Math.min(cartao.nivel, INTERVALOS.length - 1)];
+    cartao.proxima = somarDias(dias);
+    cartao.nivel++;
+  } else {
+    cartao.nivel = 0; // errou: recomeça do zero
+    cartao.proxima = chaveDoDia(new Date()); // continua valendo para hoje
+    // vai para o FIM da fila, para os outros cartões aparecerem antes dele
+    cartoes = cartoes.filter(function (x) {
+      return x.id !== cartao.id;
+    });
+    cartoes.push(cartao);
+  }
+  mostrandoResposta = false; // o próximo cartão começa com a resposta escondida
+  desenharCartoes();
+}
+
+// "2026-11-25" vira "25/11"
+function formatarData(chave) {
+  return chave.slice(8) + "/" + chave.slice(5, 7); // slice(início, fim) recorta um pedaço do texto
+}
+
+function desenharCartoes() {
+  localStorage.setItem(CHAVE_CARTOES, JSON.stringify(cartoes));
+  const hoje = chaveDoDia(new Date());
+
+  // "vencidos" = cartões cuja data de revisão já chegou.
+  // Datas no formato AAAA-MM-DD podem ser comparadas como texto com <=
+  const vencidos = cartoes.filter(function (c) {
+    return c.proxima <= hoje;
+  });
+
+  // frase de resumo
+  if (cartoes.length === 0) {
+    contagemEl.textContent = "Nenhum cartão ainda. Crie o primeiro acima.";
+  } else if (vencidos.length === 0) {
+    contagemEl.textContent = "Nada para revisar hoje. Volte amanhã!";
+  } else {
+    contagemEl.textContent =
+      vencidos.length +
+      (vencidos.length === 1
+        ? " cartão para revisar hoje"
+        : " cartões para revisar hoje");
+  }
+
+  // ----- a caixa de revisão: mostra sempre o PRIMEIRO cartão vencido -----
+  revisaoEl.innerHTML = "";
+  if (vencidos.length > 0) {
+    const atual = vencidos[0];
+
+    const pergunta = document.createElement("div");
+    pergunta.className = "q";
+    pergunta.textContent = atual.frente;
+    revisaoEl.append(pergunta);
+
+    if (mostrandoResposta) {
+      // 2º momento: a resposta aparece, com os botões de acertei / errei
+      const resposta = document.createElement("div");
+      resposta.className = "a";
+      resposta.textContent = atual.verso;
+
+      const botoes = document.createElement("div");
+      botoes.className = "rev-btns";
+
+      const errei = document.createElement("button");
+      errei.textContent = "Errei";
+      errei.addEventListener("click", function () {
+        responder(atual, false);
+      });
+
+      const acertei = document.createElement("button");
+      acertei.className = "go";
+      acertei.textContent = "Acertei";
+      acertei.addEventListener("click", function () {
+        responder(atual, true);
+      });
+
+      botoes.append(errei, acertei);
+      revisaoEl.append(resposta, botoes);
+    } else {
+      // 1º momento: só a pergunta. Tente lembrar ANTES de clicar!
+      const botoes = document.createElement("div");
+      botoes.className = "rev-btns";
+      const mostrar = document.createElement("button");
+      mostrar.className = "go";
+      mostrar.textContent = "Mostrar resposta";
+      mostrar.addEventListener("click", function () {
+        mostrandoResposta = true;
+        desenharCartoes();
+      });
+      botoes.append(mostrar);
+      revisaoEl.append(botoes);
+    }
+  }
+
+  // ----- a lista com todos os cartões -----
+  resumoListaEl.textContent = "Todos os cartões (" + cartoes.length + ")";
+  listaCartoesEl.innerHTML = "";
+  cartoes.forEach(function (c) {
+    const item = document.createElement("li");
+
+    const texto = document.createElement("span");
+    texto.textContent =
+      c.frente +
+      " · " +
+      (c.proxima <= hoje
+        ? "revisar hoje"
+        : "volta em " + formatarData(c.proxima));
+
+    const remover = document.createElement("button");
+    remover.className = "sm";
+    remover.textContent = "×";
+    remover.addEventListener("click", function () {
+      cartoes = cartoes.filter(function (x) {
+        return x.id !== c.id;
+      });
+      mostrandoResposta = false;
+      desenharCartoes();
+    });
+
+    item.append(texto, remover);
+    listaCartoesEl.append(item);
+  });
+}
+
+botaoCartao.addEventListener("click", criarCartao);
+versoEl.addEventListener("keydown", function (e) {
+  if (e.key === "Enter") criarCartao(); // Enter no campo da resposta cria o cartão
+});
+
+desenharCartoes();
