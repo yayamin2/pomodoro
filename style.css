@@ -487,16 +487,18 @@ button.sm {
 /* PIT: cada item do dia */
 .pit {
   display: flex;
+  flex-wrap: wrap; /* permite os botões irem para a linha de baixo */
   gap: 6px;
-  align-items: flex-start;
+  align-items: center;
   font-size: 14px;
   line-height: 1.35;
 }
 .pit span {
-  flex: 1;
-  padding-top: 2px;
+  order: -1; /* order negativo: o texto vem ANTES dos botões, mesmo estando depois no HTML */
+  flex: 1 1 100%; /* o texto ocupa a linha inteira */
   overflow-wrap: anywhere;
 }
+
 .pit.done span {
   text-decoration: line-through;
   opacity: 0.5;
@@ -631,4 +633,11 @@ details[open] summary::before {
   gap: 12px;
   flex-wrap: wrap;
   margin-top: 18px;
+}
+/* ACOES: os botões à direita de cada item da lista, lado a lado */
+.acoes {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0; /* não deixa os botões encolherem quando o texto é longo */
 }

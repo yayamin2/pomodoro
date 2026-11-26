@@ -138,6 +138,7 @@
         <summary id="card-summary">Todos os cartões</summary>
         <ul class="ideas" id="card-list"></ul> <!-- reaproveita o estilo da lista de ideias -->
       </details>
+
     </section>
 
     <section class="card">
@@ -150,7 +151,22 @@
         </div>
       </div>
       <div class="plan" id="plan"></div>
-      <p class="note">Escreva um item no dia e aperte Enter. Depois, o botão ao lado dele leva o item para as tarefas de hoje →</p>
+      <p class="note">Escreva um item no dia e aperte Enter. O botão → de cada item leva ele para as tarefas de hoje.</p>
+    </section>
+    <!-- O QUE APRENDI HOJE: as listas (learn-today e learn-before) são desenhadas pelo JavaScript -->
+    <section class="card">
+      <h2>O que aprendi hoje</h2>
+      <p class="hint">Antes de fechar o dia, anote o que ficou na cabeça, mesmo que seja pequeno. Depois é só transformar em cartão de revisão.</p>
+      <div class="add">
+        <input type="text" id="l-text" placeholder="Hoje eu aprendi que...">
+        <button class="go" id="add-learn">Anotar</button>
+      </div>
+      <p class="note" id="learn-count"></p>
+      <ul class="ideas" id="learn-today"></ul>
+      <details id="learn-old">
+        <summary id="learn-summary">Dias anteriores</summary>
+        <ul class="ideas" id="learn-before"></ul>
+      </details>
     </section>
   </main>
 
@@ -171,17 +187,15 @@
       <button class="sm" id="wipe">Apagar tudo e recomeçar</button>
     </div>
   </section>
-  <!-- ...organizador... -->
-  </section>
 
   <section class="card">
     <h2>Hoje em números</h2>
-
+    ...
   </section>
 
   <section class="card">
     <h2>Últimos 7 dias</h2>
-
+    ...
   </section>
   </main>
 

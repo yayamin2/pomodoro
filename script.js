@@ -279,16 +279,22 @@ function desenharEstatisticas() {
       : "Sem sequência ainda. Um bloco de foco já começa uma.";
 }
 // Botão "Apagar tudo e recomeçar"
+// Botão "Apagar tudo e recomeçar"
 botaoApagar.addEventListener("click", function () {
   // confirm() abre uma caixinha com OK/Cancelar e devolve true ou false (igual ao JOptionPane do Java)
   if (
     !confirm("Apagar tarefas, ideias, plano e histórico? Não dá para desfazer.")
   )
     return;
+  localStorage.removeItem(CHAVE); // gaveta das tarefas
+  localStorage.removeItem(CHAVE_IDEIAS); // gaveta das ideias
+  localStorage.removeItem(CHAVE_HIST); // gaveta do histórico
   localStorage.removeItem(CHAVE_PLANO); // gaveta do organizador
   localStorage.removeItem(CHAVE_CARTOES); // gaveta dos cartões
+  localStorage.removeItem(CHAVE_APRENDI); // gaveta do "o que aprendi"
   localStorage.removeItem(CHAVE_CONFIG); // gaveta dos ajustes
   localStorage.removeItem(CHAVE_PERFIL); // gaveta do nome e da cor
+  location.reload(); // recarrega a página já sem nada
 });
 
 const CHAVE = "foco-ny-tarefas";
@@ -402,8 +408,14 @@ const cidadeEl = document.querySelector("#sky");
 const empireEl = document.querySelector("#empire");
 
 function desenharCidade() {
+  // se a função rodar de novo (ao redimensionar a janela), apaga os prédios antigos antes
+  cidadeEl.querySelectorAll(".predio").forEach(function (p) {
+    p.remove();
+  });
+
   const larguraTotal = cidadeEl.clientWidth; // largura da cidade em pixels
-  let x = 0; // posição horizontal atual, em % da largura
+  const limite = larguraTotal - 100; // os prédios param aqui, para deixar espaço para a Estátua
+  let x = 0; // posição horizontal atual, agora em PIXELS
   let semente = 7; // número inicial do "sorteio". Fixo = o desenho é sempre o mesmo
   let empireColocado = false;
 
@@ -413,43 +425,44 @@ function desenharCidade() {
     return semente / 233280;
   }
 
-  while (x < 86) {
-    // ao chegar perto de 34%, reserva o espaço EXATO do Empire State
-    if (!empireColocado && x >= 34) {
-      empireEl.style.left = x + "%";
-      x += (30 / larguraTotal) * 100 + 0.4; // 30px do desenho convertidos para % + uma folguinha
+  while (x < limite - 20) {
+    // ao chegar perto de 34% da largura, reserva o espaço do Empire State (30px)
+    if (!empireColocado && x >= larguraTotal * 0.34) {
+      empireEl.style.left = x + "px";
+      x += 30 + 4; // 30px do desenho + uma folguinha
       empireColocado = true;
       continue;
     }
 
-    const largura = 3 + sorteio() * 5; // largura entre 3% e 8%
-    const altura = 18 + sorteio() * 48; // altura entre 18px e 66px
+    let largura = 34 + sorteio() * 40; // largura entre 34px e 74px (antes era em %)
+    const altura = 22 + sorteio() * 52; // altura entre 22px e 74px
+    largura = Math.min(largura, limite - x); // o último prédio não passa do limite
 
     const predio = document.createElement("div");
     predio.className = "predio";
-    predio.style.left = x + "%";
-    predio.style.width = largura + "%";
+    predio.style.left = x + "px";
+    predio.style.width = largura + "px";
     predio.style.height = altura + "px";
 
     // JANELAS: cada uma ocupa 4px + 5px de espaço = 9px.
-    const larguraPx = (largura / 100) * larguraTotal; // largura do prédio em pixels
-    const colunas = Math.floor((larguraPx - 7) / 9); // quantas cabem na horizontal
+    const colunas = Math.floor((largura - 7) / 9); // quantas cabem na horizontal
     const linhas = Math.floor((altura - 9) / 9); // quantas cabem na vertical
 
-    // for: repete colunas × linhas vezes
     for (let i = 0; i < colunas * linhas; i++) {
       const janela = document.createElement("div");
       // cerca de 40% das janelas ficam acesas (sorteio acima de 0.6)
       janela.className = "janela" + (sorteio() > 0.6 ? " acesa" : "");
-      predio.append(janela); // a janela entra DENTRO do prédio
+      predio.append(janela);
     }
 
     cidadeEl.append(predio);
-    x += largura + 0.2; // anda para o lado e deixa um espacinho entre os prédios
+    x += largura + 3; // anda para o lado e deixa 3px entre os prédios
   }
 }
 
 desenharCidade();
+// se a janela mudar de tamanho, a cidade é desenhada de novo para continuar preenchendo a tela
+window.addEventListener("resize", desenharCidade);
 
 const CHAVE_IDEIAS = "foco-ny-ideias";
 
@@ -854,10 +867,8 @@ function somarDias(dias) {
   return chaveDoDia(d);
 }
 
-function criarCartao() {
-  const frente = frenteEl.value.trim();
-  const verso = versoEl.value.trim();
-  if (frente === "" || verso === "") return; // precisa de pergunta E resposta
+// Só cria o cartão e coloca na lista (o "O que aprendi hoje" também usa esta função)
+function adicionarCartao(frente, verso) {
   cartoes.push({
     id: Date.now(),
     frente: frente,
@@ -865,6 +876,14 @@ function criarCartao() {
     nivel: 0,
     proxima: chaveDoDia(new Date()), // cartão novo já entra para revisar hoje
   });
+}
+
+// Lê os campos da tela e chama adicionarCartao
+function criarCartao() {
+  const frente = frenteEl.value.trim();
+  const verso = versoEl.value.trim();
+  if (frente === "" || verso === "") return; // precisa de pergunta E resposta
+  adicionarCartao(frente, verso);
   frenteEl.value = "";
   versoEl.value = "";
   frenteEl.focus(); // devolve o cursor para a pergunta, para criar o próximo
@@ -1005,3 +1024,143 @@ versoEl.addEventListener("keydown", function (e) {
 });
 
 desenharCartoes();
+// ============================================================
+// O QUE APRENDI HOJE
+// ============================================================
+
+const CHAVE_APRENDI = "foco-ny-aprendi";
+
+// Cada anotação é um objeto: { id, texto, dia, cartao }
+//   dia    = a data em que foi anotada ("AAAA-MM-DD")
+//   cartao = true se já virou cartão de revisão
+function carregarAprendizados() {
+  try {
+    const texto = localStorage.getItem(CHAVE_APRENDI);
+    return texto ? JSON.parse(texto) : [];
+  } catch (erro) {
+    return [];
+  }
+}
+
+let aprendizados = carregarAprendizados();
+
+const aprendiInputEl = document.querySelector("#l-text");
+const botaoAprendi = document.querySelector("#add-learn");
+const aprendiContagemEl = document.querySelector("#learn-count");
+const aprendiHojeEl = document.querySelector("#learn-today");
+const aprendiAntesEl = document.querySelector("#learn-before");
+const aprendiAntigosEl = document.querySelector("#learn-old"); // o <details> inteiro
+const aprendiResumoEl = document.querySelector("#learn-summary");
+
+function anotarAprendizado() {
+  const texto = aprendiInputEl.value.trim();
+  if (texto === "") return;
+  aprendizados.unshift({
+    id: Date.now(),
+    texto: texto,
+    dia: chaveDoDia(new Date()),
+    cartao: false,
+  }); // unshift: a mais nova fica em cima
+  aprendiInputEl.value = "";
+  desenharAprendizados();
+}
+
+// Transforma uma anotação em cartão de revisão
+function virarCartao(item) {
+  // prompt() abre uma caixinha com um campo de texto (igual ao JOptionPane.showInputDialog do Java).
+  // Devolve o texto digitado, ou null se a pessoa clicar em Cancelar.
+  const pergunta = prompt(
+    "Que pergunta faz você lembrar disso?\n\nA resposta do cartão será:\n" +
+      item.texto,
+  );
+  if (pergunta === null || pergunta.trim() === "") return; // cancelou ou deixou vazio
+  adicionarCartao(pergunta.trim(), item.texto); // a anotação vira a RESPOSTA do cartão
+  item.cartao = true;
+  desenharCartoes(); // atualiza a seção dos cartões
+  desenharAprendizados();
+}
+
+// Monta uma linha da lista. "comData" = mostra a data antes do texto (usado nos dias anteriores)
+function linhaAprendizado(item, comData) {
+  const linha = document.createElement("li");
+
+  const texto = document.createElement("span");
+  texto.textContent =
+    (comData ? formatarData(item.dia) + " · " : "") + item.texto;
+
+  const acoes = document.createElement("div");
+  acoes.className = "acoes";
+
+  if (item.cartao) {
+    const feito = document.createElement("span");
+    feito.className = "sub";
+    feito.textContent = "✓ virou cartão";
+    acoes.append(feito);
+  } else {
+    const virar = document.createElement("button");
+    virar.className = "sm";
+    virar.textContent = "→ cartão";
+    virar.addEventListener("click", function () {
+      virarCartao(item);
+    });
+    acoes.append(virar);
+  }
+
+  const remover = document.createElement("button");
+  remover.className = "sm";
+  remover.textContent = "×";
+  remover.addEventListener("click", function () {
+    aprendizados = aprendizados.filter(function (x) {
+      return x.id !== item.id;
+    });
+    desenharAprendizados();
+  });
+  acoes.append(remover);
+
+  linha.append(texto, acoes);
+  return linha;
+}
+
+function desenharAprendizados() {
+  localStorage.setItem(CHAVE_APRENDI, JSON.stringify(aprendizados));
+  const hoje = chaveDoDia(new Date());
+
+  // separa as anotações de hoje das dos outros dias
+  const deHoje = aprendizados.filter(function (a) {
+    return a.dia === hoje;
+  });
+  const antigos = aprendizados.filter(function (a) {
+    return a.dia !== hoje;
+  });
+
+  aprendiContagemEl.textContent =
+    "Hoje: " +
+    deHoje.length +
+    "/3 (uma meta leve: três coisas, mesmo pequenas)";
+
+  aprendiHojeEl.innerHTML = "";
+  if (deHoje.length === 0) {
+    const vazio = document.createElement("li");
+    vazio.className = "vazio";
+    vazio.textContent = "Nada ainda. O que você aprendeu hoje, mesmo pequeno?";
+    aprendiHojeEl.append(vazio);
+  }
+  deHoje.forEach(function (item) {
+    aprendiHojeEl.append(linhaAprendizado(item, false));
+  });
+
+  // dias anteriores: só aparece se houver alguma anotação antiga
+  aprendiAntigosEl.hidden = antigos.length === 0; // hidden = true esconde o elemento
+  aprendiResumoEl.textContent = "Dias anteriores (" + antigos.length + ")";
+  aprendiAntesEl.innerHTML = "";
+  antigos.forEach(function (item) {
+    aprendiAntesEl.append(linhaAprendizado(item, true));
+  });
+}
+
+botaoAprendi.addEventListener("click", anotarAprendizado);
+aprendiInputEl.addEventListener("keydown", function (e) {
+  if (e.key === "Enter") anotarAprendizado();
+});
+
+desenharAprendizados();
