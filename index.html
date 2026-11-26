@@ -16,7 +16,7 @@
 <body>
   <header>
     <h1>Foco · Nova York</h1>
-    <p>Uma coisa de cada vez. Escolha a linha, aperte o play e vá até a próxima parada.</p>
+    <p id="lead">Uma coisa de cada vez. Escolha a linha, aperte o play e vá até a próxima parada.</p>
   </header>
 
   <div class="page">
@@ -73,8 +73,37 @@
         <button id="skip">Pular</button>
         <button id="reset">Reiniciar</button>
       </div>
+      <details>
+        <summary>Ajustes</summary>
+        <div class="cfg">
+          <div class="campo">
+            <label for="c-foco">Foco (min)</label>
+            <input type="number" id="c-foco" min="1" max="120">
+          </div>
+          <div class="campo">
+            <label for="c-curta">Pausa (min)</label>
+            <input type="number" id="c-curta" min="1" max="60">
+          </div>
+          <div class="campo">
+            <label for="c-longa">Pausa longa (min)</label>
+            <input type="number" id="c-longa" min="1" max="90">
+          </div>
+        </div>
+        <label class="check"><input type="checkbox" id="c-auto"> Iniciar o próximo ciclo sozinho</label>
+        <label class="check"><input type="checkbox" id="c-som"> Tocar um som ao terminar</label>
+        <div class="cfg">
+          <div class="campo">
+            <label for="c-name">Seu nome</label>
+            <input type="text" id="c-name" maxlength="20" placeholder="Como te chamo?">
+          </div>
+          <div class="campo">
+            <span>Cor de destaque</span>
+            <div class="sw" id="sw"></div>
+          </div>
+        </div>
+      </details>
     </section>
-    <!-- TAREFAS: nome + minutos estimados -->
+
     <section class="card">
       <h2>Tarefas de hoje</h2>
       <div class="add">
@@ -84,7 +113,7 @@
       </div>
       <div class="tasks" id="tasks"></div>
     </section>
-    <!-- IDEIAS: um lugar para anotar pensamentos sem sair do foco -->
+
     <section class="card">
       <h2>Estacionamento de ideias</h2>
       <p class="hint">Bateu vontade de pesquisar outra coisa? Anote aqui em 2 segundos e volte pro foco. Você vê depois, na pausa.</p>
@@ -94,7 +123,7 @@
       </div>
       <ul class="ideas" id="ideas"></ul> <!-- ul = lista; cada ideia vira um <li> -->
     </section>
-    <!-- ORGANIZADOR DA SEMANA: as colunas dos dias (id="plan") são criadas pelo JavaScript -->
+
     <section class="card">
       <div class="plan-head">
         <h2>Organizador da semana</h2>
@@ -126,6 +155,19 @@
       <button class="sm" id="wipe">Apagar tudo e recomeçar</button>
     </div>
   </section>
+  <!-- ...organizador... -->
+  </section>
+
+  <section class="card">
+    <h2>Hoje em números</h2>
+
+  </section>
+
+  <section class="card">
+    <h2>Últimos 7 dias</h2>
+
+  </section>
+  </main>
 
   <script src="script.js"></script>
 </body>

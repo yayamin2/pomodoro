@@ -1,7 +1,16 @@
+const CHAVE_CONFIG = "foco-ny-config";
+// valores padrão, em MINUTOS
+const config = { foco: 25, curta: 5, longa: 15, auto: false, som: true };
+try {
+  // mistura o que estava salvo por cima dos padrões
+  Object.assign(config, JSON.parse(localStorage.getItem(CHAVE_CONFIG)));
+} catch (erro) {}
+
+// Duração de cada bloco em SEGUNDOS, calculada a partir das configurações
 const DURACOES = {
-  foco: 25 * 60,
-  curta: 5 * 60,
-  longa: 15 * 60,
+  foco: config.foco * 60,
+  curta: config.curta * 60,
+  longa: config.longa * 60,
 };
 const FOCOS_ATE_LONGA = 4; // depois de 4 focos, vem a pausa longa
 
@@ -81,6 +90,7 @@ function trocarModo(novo) {
 }
 
 function terminarBloco() {
+  if (config.som) beep(); // avisa com um som que o bloco acabou
   if (modo === "foco") {
     registrarFoco(); // anota mais um foco completo nas estatísticas
     ciclo++;
@@ -93,6 +103,7 @@ function terminarBloco() {
   } else {
     trocarModo("foco");
   }
+  if (config.auto) alternar(); // se marcou "iniciar sozinho", já começa o próximo bloco
 }
 
 function passarUmSegundo() {
@@ -267,14 +278,12 @@ function desenharEstatisticas() {
         " estudando. Não precisa ser perfeito, só voltar."
       : "Sem sequência ainda. Um bloco de foco já começa uma.";
 }
-
 // Botão "Apagar tudo e recomeçar"
 botaoApagar.addEventListener("click", function () {
   // confirm() abre uma caixinha com OK/Cancelar e devolve true ou false (igual ao JOptionPane do Java)
-  // Botão "Apagar tudo e recomeçar"
-botaoApagar.addEventListener("click", function () {
-  // confirm() abre uma caixinha com OK/Cancelar e devolve true ou false (igual ao JOptionPane do Java)
-  if (!confirm("Apagar tarefas, ideias, plano e histórico? Não dá para desfazer."))
+  if (
+    !confirm("Apagar tarefas, ideias, plano e histórico? Não dá para desfazer.")
+  )
     return;
   localStorage.removeItem(CHAVE); // gaveta das tarefas
   localStorage.removeItem(CHAVE_IDEIAS); // gaveta das ideias
@@ -671,3 +680,138 @@ botaoProxima.addEventListener("click", function () {
 });
 
 desenharPlano();
+
+const CHAVE_PERFIL = "foco-ny-perfil";
+
+// As cores que a pessoa pode escolher: uma lista de objetos
+const CORES = [
+  { nome: "Táxi", valor: "#fbc22e" },
+  { nome: "Néon", valor: "#ff5fa2" },
+  { nome: "Hudson", valor: "#5ab0ff" },
+  { nome: "Lavanda", valor: "#b794f6" },
+];
+
+function carregarPerfil() {
+  try {
+    const texto = localStorage.getItem(CHAVE_PERFIL);
+    return texto ? JSON.parse(texto) : {};
+  } catch (erro) {
+    return {};
+  }
+}
+
+// O perfil é um objeto com dois atributos. O "||" usa o valor padrão se não houver nada salvo
+const perfilSalvo = carregarPerfil();
+let perfil = {
+  nome: perfilSalvo.nome || "",
+  cor: perfilSalvo.cor || "#fbc22e",
+};
+
+const leadEl = document.querySelector("#lead");
+const nomeInputEl = document.querySelector("#c-name");
+const coresEl = document.querySelector("#sw");
+
+function salvarPerfil() {
+  localStorage.setItem(CHAVE_PERFIL, JSON.stringify(perfil));
+}
+
+// Aplica o perfil na tela, cor do site, saudação e bolinhas de cor
+function aplicarPerfil() {
+  // setProperty troca o valor da variável CSS --taxi, o site inteiro muda de cor de uma vez
+  document.documentElement.style.setProperty("--taxi", perfil.cor);
+
+  // saudação conforme a hora do dia
+  const hora = new Date().getHours();
+  const saudacao =
+    hora < 12 ? "Bom dia" : hora < 18 ? "Boa tarde" : "Boa noite";
+  leadEl.textContent =
+    saudacao +
+    (perfil.nome ? ", " + perfil.nome : "") +
+    ". Uma coisa de cada vez. Escolha a linha, aperte o play e vá até a próxima parada.";
+
+  // bolinhas de cor, uma para cada item da lista CORES
+  coresEl.innerHTML = "";
+  CORES.forEach(function (c) {
+    const bolinha = document.createElement("button");
+    bolinha.style.background = c.valor;
+    bolinha.className = c.valor === perfil.cor ? "on" : "";
+    bolinha.title = c.nome; // dica ao passar o mouse
+    bolinha.setAttribute("aria-label", c.nome); // para leitores de tela
+    bolinha.addEventListener("click", function () {
+      perfil.cor = c.valor;
+      salvarPerfil();
+      aplicarPerfil();
+    });
+    coresEl.append(bolinha);
+  });
+}
+
+// "input" dispara a cada letra digitada
+nomeInputEl.addEventListener("input", function () {
+  perfil.nome = nomeInputEl.value.trim();
+  salvarPerfil();
+  aplicarPerfil();
+});
+
+nomeInputEl.value = perfil.nome; // preenche o campo com o nome salvo
+aplicarPerfil();
+// Toca dois "bips" com a Web Audio API: o som é gerado por código, sem arquivo de áudio
+function beep() {
+  try {
+    const audio = new (window.AudioContext || window.webkitAudioContext)();
+    [660, 880].forEach(function (frequencia, i) {
+      const osc = audio.createOscillator(); // gera a onda sonora
+      const vol = audio.createGain(); // controla o volume
+      osc.frequency.value = frequencia;
+      osc.connect(vol);
+      vol.connect(audio.destination); // destination = os alto-falantes
+      const inicio = audio.currentTime + i * 0.25; // o segundo bip começa 0,25s depois
+      vol.gain.setValueAtTime(0.15, inicio);
+      vol.gain.exponentialRampToValueAtTime(0.001, inicio + 0.22); // o volume vai sumindo
+      osc.start(inicio);
+      osc.stop(inicio + 0.22);
+    });
+  } catch (erro) {} // se o navegador não permitir som, simplesmente não toca
+}
+
+function salvarConfig() {
+  localStorage.setItem(CHAVE_CONFIG, JSON.stringify(config));
+}
+
+// Cada item liga uma chave (foco, curta, longa) ao seu campo na tela
+const campos = [
+  { chave: "foco", el: document.querySelector("#c-foco") },
+  { chave: "curta", el: document.querySelector("#c-curta") },
+  { chave: "longa", el: document.querySelector("#c-longa") },
+];
+const autoEl = document.querySelector("#c-auto");
+const somEl = document.querySelector("#c-som");
+
+campos.forEach(function (campo) {
+  campo.el.value = config[campo.chave]; // mostra o valor atual
+  // "change" dispara quando a pessoa termina de editar o campo
+  campo.el.addEventListener("change", function () {
+    let minutos = Number(campo.el.value) || config[campo.chave]; // se for inválido, mantém o que estava
+    minutos = Math.max(1, Math.min(minutos, 120)); // limita entre 1 e 120
+    config[campo.chave] = minutos;
+    campo.el.value = minutos;
+    // const não impede de mudar os ATRIBUTOS do objeto (igual ao final do Java)
+    DURACOES[campo.chave] = minutos * 60;
+    salvarConfig();
+    // se o timer está parado e este é o bloco atual, atualiza o relógio
+    if (!rodando && campo.chave === modo) restante = DURACOES[modo];
+    desenhar();
+  });
+});
+
+// checked é true ou false, conforme a caixinha esteja marcada
+autoEl.checked = config.auto;
+autoEl.addEventListener("change", function () {
+  config.auto = autoEl.checked;
+  salvarConfig();
+});
+somEl.checked = config.som;
+somEl.addEventListener("change", function () {
+  config.som = somEl.checked;
+  salvarConfig();
+});
