@@ -68,6 +68,14 @@
         <span id="proxima"></span>
         <div class="dots" id="dots"><span></span><span></span><span></span><span></span></div>
       </div>
+      <div class="ritual" id="ritual">
+        <div class="ritual-head">
+          <span class="ritual-title">Ritual de começo</span>
+          <span class="ritual-status" id="ritual-status"></span>
+          <button type="button" class="sm" id="ritual-reset">Limpar</button>
+        </div>
+        <div class="ritual-list" id="ritual-list"></div>
+      </div>
       <div class="btns">
         <button class="go" id="toggle">Começar</button>
         <button id="skip">Pular</button>
@@ -111,6 +119,8 @@
         <input type="number" id="t-est" value="25" min="1" max="600" aria-label="Minutos estimados">
         <button class="go" id="add-task">Adicionar</button>
       </div>
+      <input type="text" class="step" id="t-step" placeholder="Primeiro passo de 2 min (opcional — ajuda a começar)">
+      <p class="note">Opcional: anote algo bem pequeno para destravar (ex.: abrir o arquivo). Não precisa preencher sempre.</p>
       <div class="tasks" id="tasks"></div>
     </section>
 
@@ -153,7 +163,7 @@
       <div class="plan" id="plan"></div>
       <p class="note">Escreva um item no dia e aperte Enter. O botão → de cada item leva ele para as tarefas de hoje.</p>
     </section>
-    <!-- O QUE APRENDI HOJE: as listas (learn-today e learn-before) são desenhadas pelo JavaScript -->
+
     <section class="card">
       <h2>O que aprendi hoje</h2>
       <p class="hint">Antes de fechar o dia, anote o que ficou na cabeça, mesmo que seja pequeno. Depois é só transformar em cartão de revisão.</p>
@@ -187,17 +197,6 @@
       <button class="sm" id="wipe">Apagar tudo e recomeçar</button>
     </div>
   </section>
-
-  <section class="card">
-    <h2>Hoje em números</h2>
-    ...
-  </section>
-
-  <section class="card">
-    <h2>Últimos 7 dias</h2>
-    ...
-  </section>
-  </main>
 
   <script src="script.js"></script>
 </body>

@@ -322,23 +322,36 @@ const nomeEl = document.querySelector("#t-name");
 const minutosEl = document.querySelector("#t-est");
 const botaoAdd = document.querySelector("#add-task");
 
-// Cria uma tarefa nova e coloca na lista
 // Só cria a tarefa e coloca na lista (o organizador também usa esta função)
-function criarTarefa(nome, minutos) {
+function criarTarefa(nome, minutos, passo) {
   tarefas.push({
-    id: Date.now(), // Date.now() = hora atual em milissegundos: serve como id único
+    id: Date.now(),
     nome: nome,
     minutos: minutos,
+    passo: passo || "", // o primeiro passinho de 2 minutos (pode ficar vazio)
     feita: false,
   });
 }
 
-// Lê o que foi digitado nos campos e chama criarTarefa
+// Abre uma caixinha pedindo o primeiro passo. Devolve o texto, ou "" se cancelar
+const passoEl = document.querySelector("#t-step");
+
 function adicionarTarefa() {
-  const nome = nomeEl.value.trim(); // trim() tira espaços das pontas
+  const nome = nomeEl.value.trim();
   if (nome === "") return;
-  criarTarefa(nome, Number(minutosEl.value) || 25); // se os minutos forem inválidos, usa 25
-  nomeEl.value = ""; // limpa o campo
+  const passo = passoEl.value.trim(); // lê o campo opcional; se estiver vazio, fica ""
+  criarTarefa(nome, Number(minutosEl.value) || 25, passo);
+  nomeEl.value = "";
+  passoEl.value = "";
+  desenharTarefas();
+}
+function adicionarTarefa() {
+  const nome = nomeEl.value.trim();
+  if (nome === "") return;
+  const passo = passoEl ? passoEl.value.trim() : "";
+  criarTarefa(nome, Number(minutosEl.value) || 25, passo);
+  nomeEl.value = "";
+  if (passoEl) passoEl.value = "";
   desenharTarefas();
 }
 
@@ -371,6 +384,14 @@ function desenharTarefas() {
     sub.className = "sub";
     sub.textContent = t.minutos + " min estimados";
     texto.append(nome, sub);
+
+    // mostra o primeiro passinho, se a tarefa tiver um
+    if (t.passo) {
+      const passo = document.createElement("div");
+      passo.className = "passo";
+      passo.textContent = "Primeiro passo: " + t.passo;
+      texto.append(passo);
+    }
 
     const botaoFeita = document.createElement("button");
     botaoFeita.className = "sm";
@@ -528,14 +549,7 @@ ideiaInputEl.addEventListener("keydown", function (e) {
 });
 
 desenharIdeias();
-// ============================================================
-// ORGANIZADOR DA SEMANA
-// ============================================================
 
-// O plano é um OBJETO usado como mapa, igual ao histórico:
-// a chave é a data e o valor é a lista de itens daquele dia.
-// Parece um HashMap<String, List<Item>> do Java.
-// Ex.: { "2026-11-25": [ { id, texto, feito }, ... ] }
 const CHAVE_PLANO = "foco-ny-plano";
 
 function carregarPlano() {
@@ -635,7 +649,7 @@ function desenharPlano() {
         enviar.textContent = "→";
         enviar.title = "Levar pro foco"; // title = a dica que aparece ao passar o mouse
         enviar.addEventListener("click", function () {
-          criarTarefa(item.texto, 25); // vira uma tarefa de 25 min nas "Tarefas de hoje"
+          criarTarefa(item.texto, 25, perguntarPasso(item.texto)); // vira tarefa e pergunta o primeiro passo
           plano[chave] = plano[chave].filter(function (x) {
             return x.id !== item.id; // tira do plano
           });
@@ -816,7 +830,6 @@ campos.forEach(function (campo) {
   });
 });
 
-// checked é true ou false, conforme a caixinha esteja marcada
 autoEl.checked = config.auto;
 autoEl.addEventListener("change", function () {
   config.auto = autoEl.checked;
@@ -827,10 +840,6 @@ somEl.addEventListener("change", function () {
   config.som = somEl.checked;
   salvarConfig();
 });
-// ============================================================
-// CARTÕES DE REVISÃO (repetição espaçada)
-// ============================================================
-
 const CHAVE_CARTOES = "foco-ny-cartoes";
 
 // A cada acerto seguido, o cartão volta num intervalo maior (em DIAS).
@@ -938,7 +947,6 @@ function desenharCartoes() {
         : " cartões para revisar hoje");
   }
 
-  // ----- a caixa de revisão: mostra sempre o PRIMEIRO cartão vencido -----
   revisaoEl.innerHTML = "";
   if (vencidos.length > 0) {
     const atual = vencidos[0];
@@ -988,7 +996,6 @@ function desenharCartoes() {
     }
   }
 
-  // ----- a lista com todos os cartões -----
   resumoListaEl.textContent = "Todos os cartões (" + cartoes.length + ")";
   listaCartoesEl.innerHTML = "";
   cartoes.forEach(function (c) {
@@ -1024,9 +1031,6 @@ versoEl.addEventListener("keydown", function (e) {
 });
 
 desenharCartoes();
-// ============================================================
-// O QUE APRENDI HOJE
-// ============================================================
 
 const CHAVE_APRENDI = "foco-ny-aprendi";
 
@@ -1067,8 +1071,6 @@ function anotarAprendizado() {
 
 // Transforma uma anotação em cartão de revisão
 function virarCartao(item) {
-  // prompt() abre uma caixinha com um campo de texto (igual ao JOptionPane.showInputDialog do Java).
-  // Devolve o texto digitado, ou null se a pessoa clicar em Cancelar.
   const pergunta = prompt(
     "Que pergunta faz você lembrar disso?\n\nA resposta do cartão será:\n" +
       item.texto,
@@ -1164,3 +1166,67 @@ aprendiInputEl.addEventListener("keydown", function (e) {
 });
 
 desenharAprendizados();
+
+const CHAVE_RITUAL = "foco-ny-ritual";
+const ITENS_RITUAL_PADRAO = [
+  "Celular longe",
+  "Água por perto",
+  "Caderno aberto",
+];
+
+function carregarRitual() {
+  try {
+    const texto = localStorage.getItem(CHAVE_RITUAL);
+    if (texto) return JSON.parse(texto);
+  } catch (erro) {}
+
+  return ITENS_RITUAL_PADRAO.map(function (texto, indice) {
+    return { id: indice + 1, texto: texto, pronto: false };
+  });
+}
+
+let ritual = carregarRitual();
+
+const ritualListaEl = document.querySelector("#ritual-list");
+const ritualStatusEl = document.querySelector("#ritual-status");
+const ritualResetEl = document.querySelector("#ritual-reset");
+
+function salvarRitual() {
+  localStorage.setItem(CHAVE_RITUAL, JSON.stringify(ritual));
+}
+
+function desenharRitual() {
+  if (!ritualListaEl || !ritualStatusEl) return;
+  salvarRitual();
+
+  const prontos = ritual.filter(function (item) {
+    return item.pronto;
+  }).length;
+
+  ritualStatusEl.textContent =
+    prontos === ritual.length && ritual.length > 0
+      ? "Tudo pronto para o foco"
+      : prontos + "/" + ritual.length + " prontos";
+
+  ritualListaEl.innerHTML = "";
+  ritual.forEach(function (item) {
+    const botao = document.createElement("button");
+    botao.type = "button";
+    botao.className = "ritual-item" + (item.pronto ? " pronto" : "");
+    botao.textContent = (item.pronto ? "✓ " : "○ ") + item.texto;
+    botao.addEventListener("click", function () {
+      item.pronto = !item.pronto;
+      desenharRitual();
+    });
+    ritualListaEl.append(botao);
+  });
+}
+
+if (ritualResetEl) {
+  ritualResetEl.addEventListener("click", function () {
+    ritual.forEach(function (item) {
+      item.pronto = false;
+    });
+    desenharRitual();
+  });
+}
